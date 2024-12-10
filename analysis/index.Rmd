@@ -18,9 +18,9 @@ editor_options:
   
 - **SC Model**
   
-  - Overview of the Model
-  - Notations for the Stan Model
+  - [Overview of the Model](scmodel-stan.html) 
   - Maps and Boxplots
+  -Trace Plots for Parameters
   
 - **SC AR Model**
   
