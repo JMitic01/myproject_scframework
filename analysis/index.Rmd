@@ -8,12 +8,13 @@ editor_options:
   chunk_output_type: console
 ---
 
-- **Welcome to My Research Website**
-  
 - **General Summary** 
-Click on this [Literature Review](literature.html) to see my results
+
+  -[Literature Review](literature.html) 
   
 - **Overview of the Data Set**
+
+  -[South Carolina COVID-19 County Data Set](data.html)
   
 - **SC Model**
   
