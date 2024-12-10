@@ -1,0 +1,31 @@
+---
+title: "Home"
+site: workflowr::wflow_site
+output:
+  workflowr::wflow_html:
+    toc: false
+editor_options:
+  chunk_output_type: console
+---
+
+- **Welcome to My Research Website**
+  
+- **General Summary** 
+Click on this [Literature Review](literature.html) to see my results
+  
+- **Overview of the Data Set**
+  
+- **SC Model**
+  
+  - Overview of the Model
+  - Notations for the Stan Model
+  - Maps and Boxplots
+  
+- **SC AR Model**
+  
+  - Overview of the AR(1) Model
+  - Maps and Boxplots
+  - Trace Plots for Parameters
+
+
+
