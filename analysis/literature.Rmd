@@ -1,0 +1,28 @@
+---
+title: "Literature Review"
+author: "JMitic01"
+date: "2024-12-10"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Introduction
+
+Monitoring infectious diseases caused by multi-genotype or multi-serotype pathogens is critical for effective public health interventions. These diseases, such as Hand, Foot, and Mouth Disease (HFMD), require accurate surveillance systems to track their spread, evaluate incidence rates, and guide resource allocation. The design of such systems must address the challenges of limited resources and the need for precise data.
+
+# Disease and Surveillance Structure
+
+The referenced study discusses the optimization of laboratory-based surveillance networks for HFMD. It highlights the need for detailed serotype-specific monitoring to capture the disease’s spatial and temporal patterns. Surveillance systems face difficulties in balancing the need for regional data granularity with constraints on laboratory testing capacity and resources.
+
+The study introduces the DIOS framework, which seeks to optimize the allocation of testing resources across geographic locations. The approach ensures accurate estimation of disease incidence and severity while adapting to variations in population density and disease burden. The paper underscores the importance of statistical and computational tools in overcoming these challenges.
+
+# Key Takeaways
+
+This research demonstrates how optimized surveillance networks improve data collection and enhance public health decision-making. The DIOS framework provides a scalable and resource-efficient strategy for monitoring diseases like HFMD, with potential applications to other multi-serotype pathogens.
+
+## References
+
+Cheng Q, Collender PA, Heaney AK, McLoughlin A, Yang Y, Zhang Y, et al. (2022) Optimizing laboratory-based surveillance networks for monitoring multi-genotype or multi-serotype infections. PLoS Comput Biol 18(9): e1010575
+
+
