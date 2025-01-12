@@ -9,7 +9,7 @@ editor_options:
 
 ## Model Overview and Notations
 
-This Stan model is designed to analyze disease case counts at the county level over a series of months. It uses a hierarchical structure to account for county-specific random effects and incorporates population data to estimate expected disease rates. The primary goal is to estimate the expected number of cases while accounting for variability across counties and time.
+This Stan model is designed to analyze disease case counts at all county levels over a series of months. It uses a hierarchical structure to account for county-specific random effects and incorporates population data to estimate expected disease rates. The primary goal is to estimate the expected number of cases while accounting for variability across counties and time.
 
 The model can be summarized as follows:
 

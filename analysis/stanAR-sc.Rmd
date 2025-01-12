@@ -111,6 +111,6 @@ Where:
 - **eta_transform[N, T]**: Transformed random effects incorporating the AR1 temporal correlation structure.
 
 #### Output
-- **Y_hat[N, T]**: Posterior predictive case counts (simulated based on the posterior distribution).
+- **Y_hat[N, T]**: Posterior predictive case counts (simulated based on the posterior distribution)
 
 ---
