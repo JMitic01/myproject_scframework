@@ -19,14 +19,12 @@ editor_options:
 - **SC Model**
   
   - [Overview of the Model](scmodel-stan.html) 
-  - [Maps and Boxplots](mapsboxplots.html)
-  - Trace Plots for Parameters
-  
+  - [Maps, Boxplots, and Trace Plots](mapsboxplots.html)
+
 - **SC AR Model**
   
   - [Overview of the AR(1) Model](stanAR-sc.html)
-  - Maps and Boxplots
-  - Trace Plots for Parameters
+  - [Maps, Boxplots, and Trace Plots for Parameters]
 
 
 

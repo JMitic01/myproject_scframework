@@ -2,10 +2,13 @@
 title: "mapsboxplots"
 author: "JMitic01"
 date: "2025-01-12"
-output: workflowr::wflow_html
+output:
+  workflowr::wflow_html:
+    self_contained: false
 editor_options:
   chunk_output_type: console
 ---
+
 ### Explanation of Trace Plots
 
 Trace plots provide a visual assessment of how well the Markov Chain Monte Carlo (MCMC) sampling has converged and mixed for the parameters of interest. Each line in the trace plot represents a single MCMC chain, and the x-axis denotes the iteration number, while the y-axis shows the parameter's sampled value.
@@ -13,7 +16,7 @@ Trace plots provide a visual assessment of how well the Markov Chain Monte Carlo
 - **Beta, Sigma, and Rho Trace Plots**:  
   The trace plots for `beta_0`, `sigma`, and `rho` show the sampling behavior of these key parameters. Consistent patterns across chains suggest that the sampler has explored the posterior distribution effectively.
 
-![Beta_Rho_Sigma_Traceplots](./img/beta_rho_sigma_allcounties.png)
+![alt text](C:/Users/jovan/OneDrive/Desktop/myproject_scframework/myproject_scframework/analysis/img/beta_rho_sigma_allcounties.png)
 
 - **Theta Trace Plots**:  
   These plots visualize the sampling behavior of selected elements of the `theta` parameter vector (e.g., `theta[1]`, `theta[4]`, etc.). Well-mixed and stationary traces imply that the sampler is appropriately capturing the variability in these parameters.
