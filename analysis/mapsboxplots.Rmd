@@ -16,11 +16,11 @@ Trace plots provide a visual assessment of how well the Markov Chain Monte Carlo
 - **Beta, Sigma, and Rho Trace Plots**:  
   The trace plots for `beta_0`, `sigma`, and `rho` show the sampling behavior of these key parameters. Consistent patterns across chains suggest that the sampler has explored the posterior distribution effectively.
 
-![alt text](C:/Users/jovan/OneDrive/Desktop/myproject_scframework/myproject_scframework/analysis/img/beta_rho_sigma_allcounties.png)
+![alt text](img/beta_rho_sigma_allcounties.png)
 
 - **Theta Trace Plots**:  
   These plots visualize the sampling behavior of selected elements of the `theta` parameter vector (e.g., `theta[1]`, `theta[4]`, etc.). Well-mixed and stationary traces imply that the sampler is appropriately capturing the variability in these parameters.
-![Theta_Traceplots](./img/theta_4_5000.png)
+![Theta_Traceplots](img/theta_4_5000.png)
 ### Boxplot of Posterior Theta Distributions by County
 The plot below illustrates the posterior distributions of the parameter \(\theta\) for each county, derived from the fitted Bayesian model. \(\theta\) represents a county-specific characteristic, such as the likelihood of a certain event or an underlying risk factor. For this visualization:  
 - Each boxplot corresponds to a specific county, with counties arranged on the vertical axis.
