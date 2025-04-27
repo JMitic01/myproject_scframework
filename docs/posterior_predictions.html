@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="JMitic01" />
+
+<meta name="date" content="2025-04-25" />
+
+<title>Posterior Predictive Accuracy and Forecasting</title>
+
+<script src="site_libs/header-attrs-2.27/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">myproject_scframework</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/JMitic01/myproject_scframework">
+    <span class="fab fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Posterior Predictive Accuracy and
+Forecasting</h1>
+<h4 class="author">JMitic01</h4>
+<h4 class="date">2025-04-25</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+workflowr <span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2025-04-27
+</p>
+<p>
+<strong>Checks:</strong> <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>myproject_scframework/</code>
+<span class="glyphicon glyphicon-question-sign" aria-hidden="true"
+title="This is the local directory in which the code in this file was executed.">
+</span>
+</p>
+<p>
+This reproducible <a href="https://rmarkdown.rstudio.com">R Markdown</a>
+analysis was created with <a
+  href="https://github.com/workflowr/workflowr">workflowr</a> (version
+1.7.1). The <em>Checks</em> tab describes the reproducibility checks
+that were applied when the results were created. The <em>Past
+versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the
+global environment can affect the analysis in your R Markdown file in
+unknown ways. For reproduciblity it’s best to always run the code in an
+empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20241205code">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Seed:</strong>
+<code>set.seed(20241205)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20241205code"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20241205)</code> was run prior to running
+the code in the R Markdown file. Setting a seed ensures that any results
+that rely on randomness, e.g. subsampling or permutations, are
+reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Session information:</strong>
+recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package
+versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be
+confident that you successfully produced the results during this
+run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr
+project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomJMitic01myprojectscframeworktree9dd8b0ab0bb9ce112c76050bb89f891b307565ectargetblank9dd8b0aa">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Repository version:</strong>
+<a href="https://github.com/JMitic01/myproject_scframework/tree/9dd8b0ab0bb9ce112c76050bb89f891b307565ec" target="_blank">9dd8b0a</a>
+</a>
+</p>
+</div>
+<div
+id="strongRepositoryversionstrongahrefhttpsgithubcomJMitic01myprojectscframeworktree9dd8b0ab0bb9ce112c76050bb89f891b307565ectargetblank9dd8b0aa"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development
+and connecting the code version to the results is critical for
+reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version
+<a href="https://github.com/JMitic01/myproject_scframework/tree/9dd8b0ab0bb9ce112c76050bb89f891b307565ec" target="_blank">9dd8b0a</a>.
+See the <em>Past versions</em> tab to see a history of the changes made
+to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for
+the analysis have been committed to Git prior to generating the results
+(you can use <code>wflow_publish</code> or
+<code>wflow_git_commit</code>). workflowr only checks the R Markdown
+file, but you know if there are other scripts or data files that it
+depends on. Below is the status of the Git repository when the results
+were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .Rproj.user/
+    Ignored:    data/fit_allaugust.RData
+
+Untracked files:
+    Untracked:  analysis/test.Rmd
+    Untracked:  analysis/theta_mapping.Rmd
+    Untracked:  myproject_clean/
+    Untracked:  stan_allcounties.RData
+    Untracked:  stan_allcounties.Rmd
+    Untracked:  stan_output.RData
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not
+included in this status report because it is ok for generated content to
+have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the repository in which changes were
+made to the R Markdown (<code>analysis/posterior_predictions.Rmd</code>)
+and HTML (<code>docs/posterior_predictions.html</code>) files. If you’ve
+configured a remote Git repository (see <code>?wflow_git_remote</code>),
+click on the hyperlinks in the table below to view the files as they
+were in that past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/JMitic01/myproject_scframework/d20766581a5e6ef65ed9cc66987e7532d57dd686/docs/posterior_predictions.html" target="_blank">d207665</a>
+</td>
+<td>
+JMitic01
+</td>
+<td>
+2025-04-26
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/JMitic01/myproject_scframework/blob/6bea90e6f87588a0807281c775a465afbcc825f2/analysis/posterior_predictions.Rmd" target="_blank">6bea90e</a>
+</td>
+<td>
+JMitic01
+</td>
+<td>
+2025-04-26
+</td>
+<td>
+Updated posterior_predictions after full rebuild
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/JMitic01/myproject_scframework/fabd7f9f8992306e4a7816227656a1181b3ee481/docs/posterior_predictions.html" target="_blank">fabd7f9</a>
+</td>
+<td>
+JMitic01
+</td>
+<td>
+2025-04-26
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/JMitic01/myproject_scframework/f9fdc16f041b883aecaa31fb4fe1bb507a9db514/docs/posterior_predictions.html" target="_blank">f9fdc16</a>
+</td>
+<td>
+JMitic01
+</td>
+<td>
+2025-04-26
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/JMitic01/myproject_scframework/blob/b7c89b1008152b813d78abffd7d10b12a0f67130/analysis/posterior_predictions.Rmd" target="_blank">b7c89b1</a>
+</td>
+<td>
+JMitic01
+</td>
+<td>
+2025-04-26
+</td>
+<td>
+wflow_publish("analysis/posterior_predictions.Rmd")
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/JMitic01/myproject_scframework/e5c49e866419a416fb145ecf496e479e3de0d430/docs/posterior_predictions.html" target="_blank">e5c49e8</a>
+</td>
+<td>
+JMitic01
+</td>
+<td>
+2025-04-25
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/JMitic01/myproject_scframework/blob/a7d76828e6528308112e153636126f72d03dc815/analysis/posterior_predictions.Rmd" target="_blank">a7d7682</a>
+</td>
+<td>
+JMitic01
+</td>
+<td>
+2025-04-25
+</td>
+<td>
+wflow_publish("analysis/posterior_predictions.Rmd")
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/JMitic01/myproject_scframework/b84cd2e251a4c284f90bc1b400803d43fa8089a9/docs/posterior_predictions.html" target="_blank">b84cd2e</a>
+</td>
+<td>
+JMitic01
+</td>
+<td>
+2025-04-25
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/JMitic01/myproject_scframework/blob/bcb269d13074309f314ea8e9d42da4ec9705f702/analysis/posterior_predictions.Rmd" target="_blank">bcb269d</a>
+</td>
+<td>
+JMitic01
+</td>
+<td>
+2025-04-25
+</td>
+<td>
+wflow_publish("analysis/posterior_predictions.Rmd")
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="forecasting-setup-and-strategy" class="section level2">
+<h2>Forecasting Setup and Strategy</h2>
+<p>To evaluate short-term forecasting performance, we trained the
+Bayesian model on observed daily COVID-19 case data up to <strong>July
+15, 2020</strong>. The fitted model was then used to forecast the period
+from <strong>July 16 to August 1, 2020</strong> for all South Carolina
+counties.</p>
+<p>To ensure proper separation between training and forecast periods,
+all case data after July 15 were masked (set to <code>NA</code>) in the
+<code>Y_matrix</code> before model fitting. These values were replaced
+with zeros during Stan execution, while an observation indicator matrix
+(<code>Y_obs</code>) ensured they were excluded from the likelihood.</p>
+<p>Spline basis functions were constructed over the full time horizon,
+and county populations were used as log offsets. This allowed us to
+simulate posterior predictive distributions for all counties across the
+forecast window and compute model performance metrics such as RMSE, MAE,
+and bias.</p>
+<hr />
+<div id="model-performance-summary" class="section level3">
+<h3>Model Performance Summary</h3>
+<p>The plots generated provide complementary insights into the model’s
+performance during the forecast period.</p>
+<p>The <strong>Expected Cases (eta) plots</strong> show the median
+predicted incidence trajectories for each selected county, with shaded
+regions representing the 95% credible intervals. These plots illustrate
+how the model captures general epidemic trends, with visible surges in
+expected cases around mid-July 2020, particularly in higher-population
+counties like <strong>Charleston</strong> and
+<strong>Greenville</strong>. The credible bands widen slightly during
+the forecast window (after July 16), reflecting increased uncertainty
+once future cases are projected without direct data anchoring the
+model.</p>
+<p>The <strong>Posterior Predictive vs Observed plots</strong> compare
+the actual observed daily case counts to the model’s posterior
+predictive means and medians across the same forecast window. Each
+county’s RMSE is displayed alongside its plot to quantify prediction
+error.<br />
+Counties such as <strong>Charleston</strong> and
+<strong>Greenville</strong> exhibit larger discrepancies between
+observed and predicted cases, leading to higher RMSE values. In
+contrast, counties like <strong>Abbeville</strong> and
+<strong>Orangeburg</strong> show closer alignment between observed and
+predicted cases, reflected in tighter credible intervals and lower
+RMSEs.</p>
+<p>Notably, the plots reveal several important aspects: - In larger
+counties (e.g., Charleston), the model tends to slightly
+<strong>underpredict large surges</strong>, possibly due to the
+smoothing nature of the spline-based temporal trend or unmodeled
+localized outbreaks. - In smaller counties (e.g., Abbeville), the model
+maintains tighter prediction intervals and better tracks fluctuations,
+likely because smaller absolute case numbers lead to proportionally less
+volatility. - The credible intervals generally encapsulate the observed
+cases during the forecast period, suggesting good model calibration even
+when the point predictions deviate.</p>
+<p>Overall, these visualizations highlight the model’s strength in
+capturing the <strong>general epidemic dynamics</strong> while
+pinpointing counties where <strong>prediction accuracy is more
+variable</strong>. They also reinforce the complementary role of
+quantitative metrics like MAE and RMSE alongside qualitative visual
+inspection for model validation.</p>
+<pre class="r"><code># Forecast period and RMSE
+forecast_start &lt;- as.Date(&quot;2020-07-16&quot;)
+forecast_end &lt;- as.Date(&quot;2020-08-01&quot;)
+
+forecast_df &lt;- merged_df %&gt;%
+  filter(Date &gt;= forecast_start &amp; Date &lt;= forecast_end)
+
+rmse_df &lt;- forecast_df %&gt;%
+  group_by(County) %&gt;%
+  summarise(RMSE = sqrt(mean((Observed_Cases - Predicted_Cases)^2, na.rm = TRUE)))
+merged_df &lt;- left_join(merged_df, rmse_df, by = &quot;County&quot;)
+print(merged_df)</code></pre>
+<pre><code># A tibble: 6,854 × 9
+   County    Date       Predicted_Cases Median_Predicted_Cases Lower_95_CI
+   &lt;chr&gt;     &lt;date&gt;               &lt;dbl&gt;                  &lt;dbl&gt;       &lt;dbl&gt;
+ 1 Abbeville 2020-03-06         0.00342                      0           0
+ 2 Abbeville 2020-03-07         0.00417                      0           0
+ 3 Abbeville 2020-03-08         0.00483                      0           0
+ 4 Abbeville 2020-03-09         0.008                        0           0
+ 5 Abbeville 2020-03-10         0.0107                       0           0
+ 6 Abbeville 2020-03-11         0.0118                       0           0
+ 7 Abbeville 2020-03-12         0.0162                       0           0
+ 8 Abbeville 2020-03-13         0.025                        0           0
+ 9 Abbeville 2020-03-14         0.0261                       0           0
+10 Abbeville 2020-03-15         0.0373                       0           0
+# ℹ 6,844 more rows
+# ℹ 4 more variables: Upper_95_CI &lt;dbl&gt;, Observed_Cases &lt;dbl&gt;,
+#   date_column_name &lt;date&gt;, RMSE &lt;dbl&gt;</code></pre>
+<pre class="r"><code>example_counties &lt;- c(&quot;Charleston&quot;, &quot;Abbeville&quot;, &quot;Richland&quot;, &quot;Greenville&quot;, &quot;Horry&quot;, &quot;Orangeburg&quot;)
+subset_df &lt;- merged_df %&gt;% filter(County %in% example_counties)
+
+# Plot: Posterior predictive vs observed
+gg_pred &lt;- ggplot(subset_df, aes(x = Date)) +
+  geom_line(aes(y = Predicted_Cases, color = County)) +
+  geom_line(aes(y = Median_Predicted_Cases, color = County), linetype = &quot;dashed&quot;) +
+  geom_ribbon(aes(ymin = Lower_95_CI, ymax = Upper_95_CI, fill = County), alpha = 0.2) +
+  geom_point(aes(y = Observed_Cases), shape = 16, color = &quot;black&quot;, alpha = 0.7) +
+  geom_vline(xintercept = forecast_start, linetype = &quot;dashed&quot;, color = &quot;black&quot;) +
+  facet_wrap(~ County + RMSE, scales = &quot;free_y&quot;, labeller = label_both) +
+  labs(title = &quot;Posterior Predictive vs Observed COVID-19 Cases&quot;,
+       subtitle = &quot;Dashed line marks forecast start&quot;,
+       x = &quot;Date&quot;, y = &quot;Daily Cases&quot;) +
+  theme_minimal()
+
+print(gg_pred)</code></pre>
+<p><img src="figure/posterior_predictions.Rmd/PLOTS-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-PLOTS-1">
+Past versions of PLOTS-1.png
+</button>
+</p>
+<div id="fig-PLOTS-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/JMitic01/myproject_scframework/blob/b84cd2e251a4c284f90bc1b400803d43fa8089a9/docs/figure/posterior_predictions.Rmd/PLOTS-1.png" target="_blank">b84cd2e</a>
+</td>
+<td>
+JMitic01
+</td>
+<td>
+2025-04-25
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<pre class="r"><code># Subset for eta plot
+eta_subset_df &lt;- eta_summary_df %&gt;% filter(County %in% example_counties)
+
+# Plot: eta trend
+gg_eta &lt;- ggplot(eta_subset_df, aes(x = Date, y = Median, color = County, fill = County)) +
+  geom_ribbon(aes(ymin = Lower, ymax = Upper), alpha = 0.2) +
+  geom_line(size = 1) +
+  geom_vline(xintercept = forecast_start, linetype = &quot;dashed&quot;, color = &quot;black&quot;) +
+  facet_wrap(~ County, scales = &quot;free_y&quot;) +
+  labs(title = &quot;Expected Cases (eta) Over Time&quot;,
+       subtitle = &quot;Modeled as exp(alpha + theta + X * beta + log(pop))&quot;,
+       y = &quot;Expected Cases&quot;, x = &quot;Date&quot;) +
+  theme_minimal()</code></pre>
+<pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+ℹ Please use `linewidth` instead.
+This warning is displayed once every 8 hours.
+Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+generated.</code></pre>
+<pre class="r"><code>print(gg_eta)</code></pre>
+<p><img src="figure/posterior_predictions.Rmd/PLOTS-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-PLOTS-2">
+Past versions of PLOTS-2.png
+</button>
+</p>
+<div id="fig-PLOTS-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/JMitic01/myproject_scframework/blob/b84cd2e251a4c284f90bc1b400803d43fa8089a9/docs/figure/posterior_predictions.Rmd/PLOTS-2.png" target="_blank">b84cd2e</a>
+</td>
+<td>
+JMitic01
+</td>
+<td>
+2025-04-25
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<pre class="r"><code>#average daily miss in case counts.
+mae_df &lt;- forecast_df %&gt;%
+  group_by(County) %&gt;%
+  summarise(MAE = mean(abs(Observed_Cases - Predicted_Cases), na.rm = TRUE))
+print(mae_df)</code></pre>
+<pre><code># A tibble: 46 × 2
+   County        MAE
+   &lt;chr&gt;       &lt;dbl&gt;
+ 1 Abbeville    5.06
+ 2 Aiken      163.  
+ 3 Allendale    6.45
+ 4 Anderson    14.8 
+ 5 Bamberg      7.65
+ 6 Barnwell    12.0 
+ 7 Beaufort    18.7 
+ 8 Berkeley    34.5 
+ 9 Calhoun     14.7 
+10 Charleston  60.1 
+# ℹ 36 more rows</code></pre>
+<pre class="r"><code>bias_df &lt;- forecast_df %&gt;%
+  group_by(County) %&gt;%
+  summarise(Bias = mean(Predicted_Cases - Observed_Cases, na.rm = TRUE))
+accuracy_df &lt;- rmse_df %&gt;%
+  left_join(mae_df, by = &quot;County&quot;) %&gt;%
+  left_join(bias_df, by = &quot;County&quot;)
+print(bias_df)</code></pre>
+<pre><code># A tibble: 46 × 2
+   County       Bias
+   &lt;chr&gt;       &lt;dbl&gt;
+ 1 Abbeville   -2.30
+ 2 Aiken      163.  
+ 3 Allendale    4.77
+ 4 Anderson     5.95
+ 5 Bamberg      1.88
+ 6 Barnwell    10.0 
+ 7 Beaufort     8.19
+ 8 Berkeley   -30.0 
+ 9 Calhoun     12.8 
+10 Charleston -38.1 
+# ℹ 36 more rows</code></pre>
+</div>
+<div id="summary-of-mae-analysis-and-posterior-predictions"
+class="section level3">
+<h3>Summary of MAE Analysis and Posterior Predictions</h3>
+<p>The <strong>Mean Absolute Error (MAE)</strong> for each county was
+calculated to assess the accuracy of our model’s <strong>predicted
+COVID-19 cases</strong> relative to the <strong>observed daily
+cases</strong> during the forecast period from <strong>July 16 to August
+1, 2020</strong>. The MAE represents the average of the absolute
+differences between the observed and predicted cases, providing a
+measure of the model’s overall prediction accuracy for each county.</p>
+<p>The results indicate varying levels of prediction accuracy across
+counties, with <strong>Charleston</strong> showing a higher MAE (60.1),
+suggesting that the model’s predictions were less accurate in this
+county. In contrast, <strong>Abbeville</strong> showed a lower MAE
+(5.06), indicating that the model’s predictions for this county were
+more precise. Other counties like <strong>Aiken</strong> (163.0) exhibit
+significant discrepancies between observed and predicted cases, which
+could indicate data issues, model misspecifications, or unaccounted
+external factors affecting case trends. The MAE values provide a
+quantitative measure that complements the visual assessment from the
+<strong>eta trends</strong> and <strong>posterior predictive
+plots</strong>, helping to identify where the model performs well and
+where it may need refinement.</p>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 4.3.1 (2023-06-16 ucrt)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 11 x64 (build 26100)
+
+Matrix products: default
+
+
+locale:
+[1] LC_COLLATE=English_United States.utf8 
+[2] LC_CTYPE=English_United States.utf8   
+[3] LC_MONETARY=English_United States.utf8
+[4] LC_NUMERIC=C                          
+[5] LC_TIME=English_United States.utf8    
+
+time zone: America/New_York
+tzcode source: internal
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] rstan_2.32.6        StanHeaders_2.32.10 lubridate_1.9.3    
+ [4] forcats_1.0.0       stringr_1.5.1       dplyr_1.1.4        
+ [7] purrr_1.0.2         readr_2.1.5         tidyr_1.3.1        
+[10] tibble_3.2.1        ggplot2_3.5.1       tidyverse_2.0.0    
+[13] workflowr_1.7.1    
+
+loaded via a namespace (and not attached):
+ [1] gtable_0.3.5       xfun_0.46          bslib_0.7.0        QuickJSR_1.3.1    
+ [5] processx_3.8.3     lattice_0.21-8     inline_0.3.19      callr_3.7.6       
+ [9] tzdb_0.4.0         vctrs_0.6.5        tools_4.3.1        ps_1.7.6          
+[13] generics_0.1.3     parallel_4.3.1     stats4_4.3.1       fansi_1.0.4       
+[17] highr_0.11         pkgconfig_2.0.3    Matrix_1.6-5       RcppParallel_5.1.9
+[21] lifecycle_1.0.4    farver_2.1.1       compiler_4.3.1     git2r_0.33.0      
+[25] munsell_0.5.1      codetools_0.2-19   getPass_0.2-4      httpuv_1.6.14     
+[29] htmltools_0.5.8.1  sass_0.4.9         yaml_2.3.8         crayon_1.5.3      
+[33] later_1.3.2        pillar_1.9.0       jquerylib_0.1.4    whisker_0.4.1     
+[37] cachem_1.0.8       tidyselect_1.2.1   digest_0.6.34      stringi_1.8.3     
+[41] labeling_0.4.3     rprojroot_2.0.4    fastmap_1.1.1      grid_4.3.1        
+[45] colorspace_2.1-0   cli_3.6.1          magrittr_2.0.3     loo_2.8.0         
+[49] pkgbuild_1.4.4     utf8_1.2.3         withr_3.0.0        scales_1.3.0      
+[53] promises_1.2.1     bit64_4.0.5        timechange_0.3.0   rmarkdown_2.27    
+[57] httr_1.4.7         matrixStats_1.3.0  bit_4.0.5          timeDate_4032.109 
+[61] gridExtra_2.3      hms_1.1.3          evaluate_0.24.0    knitr_1.48        
+[65] rlang_1.1.1        Rcpp_1.0.13        glue_1.6.2         vroom_1.6.5       
+[69] rstudioapi_0.16.0  jsonlite_1.8.8     R6_2.5.1           fs_1.6.3          </code></pre>
+</div>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+https://docs.mathjax.org/en/latest/web/configuration.html. This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,116 @@
+---
+title: "stanAR-sc"
+author: "JMitic01"
+date: "2024-12-10"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Model Overview and Notations
+
+### AR(1) Cholesky Decomposition
+
+In the model, the temporal autocorrelation structure of the random effects is modeled using an AR(1) process. The AR(1) model defines the correlation between time periods \( t \) and \( t' \) as:
+
+\[
+\text{AR1}_{t, t'} = \rho^{|t - t'|}
+\]
+
+Where:
+- \( \rho \) is the autocorrelation parameter between consecutive time periods.
+
+To generate correlated random effects, we use the Cholesky decomposition of the AR(1) matrix. This decomposition transforms uncorrelated random effects into correlated random effects. The Cholesky factor \( \mathbf{T}_L \) satisfies:
+
+\[
+\mathbf{AR1} = \mathbf{T}_L \mathbf{T}_L^T
+\]
+
+Where:
+- \( \mathbf{T}_L \) is the lower triangular matrix obtained from the Cholesky decomposition.
+
+The Stan function `AR1_L` computes the Cholesky decomposition of the AR(1) matrix. It fills in the diagonal elements with \( \sqrt{1 - \rho^2} \) and uses the recursive relation \( \rho \cdot \mathbf{ar1\_mat\_L}[i-1,j] \) for the off-diagonal elements.
+
+This allows the model to incorporate temporal correlation between random effects, reflecting the autocorrelation structure defined by \( \rho \).
+
+
+#### Cholesky Decomposition of AR1 Matrix
+
+We begin by defining the Cholesky decomposition of the AR(1) correlation matrix as follows:
+
+\[
+\mathbf{T}_L = \text{AR1}_L(T, \rho)
+\]
+
+Where:
+- \( \rho \) is the temporal autocorrelation parameter (between 0 and 1).
+- \( \mathbf{T}_L \) is the Cholesky decomposition of the AR1 matrix for \( T \) time periods.
+
+#### Expected Case Rates
+
+\[
+\lambda_{i,t} = \exp(\beta_0 + \theta_i + \eta_{i,t}) \cdot \text{pop}_{i,t}
+\]
+
+Where:
+- \( \lambda_{i,t} \) is the expected disease rate for county \( i \) and month \( t \),
+- \( \beta_0 \) is the global intercept representing the base log-rate of disease,
+- \( \theta_i \) is the random effect for county \( i \), capturing county-specific deviations from the global intercept,
+- \( \eta_{i,t} \) is the transformed random effect for each county and month,
+- \( \text{pop}_{i,t} \) is the population or average cases for county \( i \) and month \( t \).
+
+#### Observed Cases
+
+\[
+Y_{i,t} \sim \text{Poisson}(\lambda_{i,t})
+\]
+
+Where:
+- \( Y_{i,t} \) is the observed case count for county \( i \) and month \( t \),
+- \( \lambda_{i,t} \) is the expected disease rate for county \( i \) and month \( t \), as defined above.
+
+#### Priors
+
+\[
+\beta_0 \sim \text{Normal}(0, 2), \quad \theta_{\text{raw},i} \sim \text{Normal}(0, 1), \quad \sigma \sim \text{Normal}(1, 2), \quad \rho \sim \text{Beta}(2, 2)
+\]
+
+Where:
+- \( \beta_0 \) is the global intercept,
+- \( \theta_{\text{raw},i} \) are the raw random effects for each county, defined as non-centered random effects,
+- \( \sigma \) is the standard deviation of the random effects,
+- \( \rho \) is the temporal autocorrelation parameter, governing the correlation of disease rates over time.
+
+#### Generated Quantities (Posterior Predictive)
+
+\[
+Y_{\text{hat},i,t} \sim \text{Poisson}(\lambda_{i,t})
+\]
+
+Where:
+- \( Y_{\text{hat},i,t} \) are the posterior predictive case counts for county \( i \) and month \( t \).
+
+---
+
+### Key Components and Variables
+
+#### Data
+- **N**: Number of counties.
+- **T**: Number of months.
+- **Y[N, T]**: Observed case counts (matrix with counties and months).
+- **pop[N, T]**: Population or average cases (matrix with counties and months).
+
+#### Parameters
+- **beta_0**: Global intercept (representing the base log-rate of disease).
+- **theta_raw[N]**: Non-centered random effects for each county (a vector of raw county-specific deviations).
+- **sigma**: Standard deviation for random effects (representing county-level variability).
+- **rho**: Temporal autocorrelation parameter (affects correlation over time).
+
+#### Derived Quantities
+- **lambda[N, T]**: Expected disease rates (matrix with counties and months).
+- **eta_transform[N, T]**: Transformed random effects incorporating the AR1 temporal correlation structure.
+
+#### Output
+- **Y_hat[N, T]**: Posterior predictive case counts (simulated based on the posterior distribution)
+
+---

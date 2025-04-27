@@ -1,0 +1,186 @@
+---
+title: "Posterior Predictive Accuracy and Forecasting"
+author: "JMitic01"
+date: "2025-04-25"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Forecasting Setup and Strategy
+
+To evaluate short-term forecasting performance, we trained the Bayesian model on observed daily COVID-19 case data up to **July 15, 2020**. The fitted model was then used to forecast the period from **July 16 to August 1, 2020** for all South Carolina counties.
+
+To ensure proper separation between training and forecast periods, all case data after July 15 were masked (set to `NA`) in the `Y_matrix` before model fitting. These values were replaced with zeros during Stan execution, while an observation indicator matrix (`Y_obs`) ensured they were excluded from the likelihood.
+
+Spline basis functions were constructed over the full time horizon, and county populations were used as log offsets. This allowed us to simulate posterior predictive distributions for all counties across the forecast window and compute model performance metrics such as RMSE, MAE, and bias.
+
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(rstan)
+library(purrr)
+library(ggplot2)
+
+load("data/data_list_august.RData")
+load("data/fit_allaugust.RData")
+
+# Extract posterior
+posterior <- rstan::extract(fit_all, pars = c("mu_beta", "alpha", "theta_raw", "sigma_theta", "Y_pred", "beta"))
+
+mu_beta_samples <- posterior$mu_beta
+alpha_samples <- posterior$alpha
+theta_raw_samples <- posterior$theta_raw
+sigma_theta_samples <- posterior$sigma_theta
+beta_samples <- posterior$beta
+Y_pred_samples <- posterior$Y_pred
+
+theta_samples <- sweep(theta_raw_samples, 1, sigma_theta_samples, `*`)
+global_trend_eta_samples <- t(apply(mu_beta_samples, 1, function(mu) {
+  as.vector(data_list$spline_basis %*% mu)
+}))
+
+# Setup
+avg_log_pop <- log(rowMeans(data_list$pop))
+T <- data_list$T
+N <- data_list$N
+dates <- as.Date(colnames(data_list$Y))
+county_names <- rownames(data_list$Y)
+
+# Compute eta
+eta_list <- lapply(1:N, function(n) {
+  eta_mat <- matrix(NA, nrow = length(alpha_samples), ncol = T)
+  for (iter in 1:length(alpha_samples)) {
+    eta_mat[iter, ] <- alpha_samples[iter] +
+      theta_samples[iter, n] +
+      as.vector(data_list$spline_basis %*% beta_samples[iter, n, ]) +
+      avg_log_pop[n]
+  }
+  exp(eta_mat)
+})
+
+# Summarize eta
+eta_summary_df <- purrr::map2_dfr(eta_list, 1:N, function(eta_mat, n) {
+  data.frame(
+    Date = dates,
+    County = county_names[n],
+    Median = apply(eta_mat, 2, median),
+    Lower  = apply(eta_mat, 2, quantile, probs = 0.025),
+    Upper  = apply(eta_mat, 2, quantile, probs = 0.975)
+  )
+})
+
+# Summarize posterior predictions
+summaries <- list(
+  Predicted_Cases        = apply(Y_pred_samples, c(2, 3), mean),
+  Median_Predicted_Cases = apply(Y_pred_samples, c(2, 3), median),
+  Lower_95_CI            = apply(Y_pred_samples, c(2, 3), quantile, probs = 0.025),
+  Upper_95_CI            = apply(Y_pred_samples, c(2, 3), quantile, probs = 0.975)
+)
+
+# Convert matrices to long format
+convert_mat_to_long <- function(mat, value_name) {
+  df <- as_tibble(mat)
+  colnames(df) <- as.character(dates)
+  df <- df %>% mutate(County = county_names)
+  pivot_longer(df, cols = -County, names_to = "Date", values_to = value_name) %>%
+    mutate(Date = as.Date(Date))
+}
+
+pred_long <- reduce(names(summaries), function(df, nm) {
+  new_df <- convert_mat_to_long(summaries[[nm]], nm)
+  if (is.null(df)) new_df else left_join(df, new_df, by = c("County", "Date"))
+}, .init = NULL)
+# Load observed data
+obs_data <- read_csv("data/obs_data_new.csv")
+
+merged_df <- left_join(pred_long, obs_data, by = c("County", "Date"))
+```
+### Model Performance Summary
+
+The plots generated provide complementary insights into the model's performance during the forecast period.
+
+The **Expected Cases (eta) plots** show the median predicted incidence trajectories for each selected county, with shaded regions representing the 95% credible intervals. These plots illustrate how the model captures general epidemic trends, with visible surges in expected cases around mid-July 2020, particularly in higher-population counties like **Charleston** and **Greenville**. The credible bands widen slightly during the forecast window (after July 16), reflecting increased uncertainty once future cases are projected without direct data anchoring the model.
+
+The **Posterior Predictive vs Observed plots** compare the actual observed daily case counts to the model’s posterior predictive means and medians across the same forecast window. Each county’s RMSE is displayed alongside its plot to quantify prediction error.  
+Counties such as **Charleston** and **Greenville** exhibit larger discrepancies between observed and predicted cases, leading to higher RMSE values. In contrast, counties like **Abbeville** and **Orangeburg** show closer alignment between observed and predicted cases, reflected in tighter credible intervals and lower RMSEs.
+
+Notably, the plots reveal several important aspects:
+- In larger counties (e.g., Charleston), the model tends to slightly **underpredict large surges**, possibly due to the smoothing nature of the spline-based temporal trend or unmodeled localized outbreaks.
+- In smaller counties (e.g., Abbeville), the model maintains tighter prediction intervals and better tracks fluctuations, likely because smaller absolute case numbers lead to proportionally less volatility.
+- The credible intervals generally encapsulate the observed cases during the forecast period, suggesting good model calibration even when the point predictions deviate.
+
+Overall, these visualizations highlight the model’s strength in capturing the **general epidemic dynamics** while pinpointing counties where **prediction accuracy is more variable**. They also reinforce the complementary role of quantitative metrics like MAE and RMSE alongside qualitative visual inspection for model validation.
+
+
+```{r PLOTS}
+# Forecast period and RMSE
+forecast_start <- as.Date("2020-07-16")
+forecast_end <- as.Date("2020-08-01")
+
+forecast_df <- merged_df %>%
+  filter(Date >= forecast_start & Date <= forecast_end)
+
+rmse_df <- forecast_df %>%
+  group_by(County) %>%
+  summarise(RMSE = sqrt(mean((Observed_Cases - Predicted_Cases)^2, na.rm = TRUE)))
+merged_df <- left_join(merged_df, rmse_df, by = "County")
+print(merged_df)
+
+example_counties <- c("Charleston", "Abbeville", "Richland", "Greenville", "Horry", "Orangeburg")
+subset_df <- merged_df %>% filter(County %in% example_counties)
+
+# Plot: Posterior predictive vs observed
+gg_pred <- ggplot(subset_df, aes(x = Date)) +
+  geom_line(aes(y = Predicted_Cases, color = County)) +
+  geom_line(aes(y = Median_Predicted_Cases, color = County), linetype = "dashed") +
+  geom_ribbon(aes(ymin = Lower_95_CI, ymax = Upper_95_CI, fill = County), alpha = 0.2) +
+  geom_point(aes(y = Observed_Cases), shape = 16, color = "black", alpha = 0.7) +
+  geom_vline(xintercept = forecast_start, linetype = "dashed", color = "black") +
+  facet_wrap(~ County + RMSE, scales = "free_y", labeller = label_both) +
+  labs(title = "Posterior Predictive vs Observed COVID-19 Cases",
+       subtitle = "Dashed line marks forecast start",
+       x = "Date", y = "Daily Cases") +
+  theme_minimal()
+
+print(gg_pred)
+
+# Subset for eta plot
+eta_subset_df <- eta_summary_df %>% filter(County %in% example_counties)
+
+# Plot: eta trend
+gg_eta <- ggplot(eta_subset_df, aes(x = Date, y = Median, color = County, fill = County)) +
+  geom_ribbon(aes(ymin = Lower, ymax = Upper), alpha = 0.2) +
+  geom_line(size = 1) +
+  geom_vline(xintercept = forecast_start, linetype = "dashed", color = "black") +
+  facet_wrap(~ County, scales = "free_y") +
+  labs(title = "Expected Cases (eta) Over Time",
+       subtitle = "Modeled as exp(alpha + theta + X * beta + log(pop))",
+       y = "Expected Cases", x = "Date") +
+  theme_minimal()
+
+print(gg_eta)
+#average daily miss in case counts.
+mae_df <- forecast_df %>%
+  group_by(County) %>%
+  summarise(MAE = mean(abs(Observed_Cases - Predicted_Cases), na.rm = TRUE))
+print(mae_df)
+bias_df <- forecast_df %>%
+  group_by(County) %>%
+  summarise(Bias = mean(Predicted_Cases - Observed_Cases, na.rm = TRUE))
+accuracy_df <- rmse_df %>%
+  left_join(mae_df, by = "County") %>%
+  left_join(bias_df, by = "County")
+print(bias_df)
+
+```
+
+
+### Summary of MAE Analysis and Posterior Predictions
+
+The **Mean Absolute Error (MAE)** for each county was calculated to assess the accuracy of our model's **predicted COVID-19 cases** relative to the **observed daily cases** during the forecast period from **July 16 to August 1, 2020**. The MAE represents the average of the absolute differences between the observed and predicted cases, providing a measure of the model's overall prediction accuracy for each county.
+
+The results indicate varying levels of prediction accuracy across counties, with **Charleston** showing a higher MAE (60.1), suggesting that the model's predictions were less accurate in this county. In contrast, **Abbeville** showed a lower MAE (5.06), indicating that the model's predictions for this county were more precise. Other counties like **Aiken** (163.0) exhibit significant discrepancies between observed and predicted cases, which could indicate data issues, model misspecifications, or unaccounted external factors affecting case trends.
+The MAE values provide a quantitative measure that complements the visual assessment from the **eta trends** and **posterior predictive plots**, helping to identify where the model performs well and where it may need refinement.
+

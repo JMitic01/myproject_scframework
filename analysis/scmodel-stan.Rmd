@@ -1,0 +1,69 @@
+---
+title: "scmodel-stan"
+author: "JMitic01"
+date: "2024-12-10"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Model Overview and Notations
+
+This Stan model is designed to analyze disease case counts at all county levels over a series of months. It uses a hierarchical structure to account for county-specific random effects and incorporates population data to estimate expected disease rates. The primary goal is to estimate the expected number of cases while accounting for variability across counties and time.
+
+The model can be summarized as follows:
+
+#### Data
+- **N**: Number of counties.
+- **T**: Number of months.
+- **Y[N, T]**: Observed case counts (matrix with counties and months).
+- **pop[N, T]**: Population or average cases (matrix with counties and months).
+
+#### Parameters
+- **beta_0**: Global intercept (representing the base log-rate of disease).
+- **theta[N]**: Random effects for counties (a vector of county-specific deviations from the global intercept).
+- **sigma**: Standard deviation of random effects (representing county-level variability).
+
+#### Derived Quantities
+- **lambda[N, T]**: Expected case rates (matrix with counties and months).
+
+#### Output
+- **Y_hat[N, T]**: Posterior predictive case counts (simulated case counts based on the posterior distribution).
+
+
+#### Expected Case Rates
+
+\[
+\lambda_{i,t} = \exp(\beta_0 + \theta_i) \cdot \text{pop}_{i,t}
+\]
+
+Where:
+- \( \lambda_{i,t} \) is the expected disease rate for county \(i\) and month \(t\),
+- \( \beta_0 \) is the global intercept representing the base log-rate of disease,
+- \( \theta_i \) is the random effect for county \(i\), capturing county-specific deviations from the global intercept,
+- \( \text{pop}_{i,t} \) is the population or average cases for county \(i\) and month \(t\).
+
+#### Observed Cases
+
+\[
+Y_{i,t} \sim \text{Poisson}(\lambda_{i,t})
+\]
+
+Where:
+- \( Y_{i,t} \) is the observed case count for county \(i\) and month \(t\),
+- \( \lambda_{i,t} \) is the expected disease rate for county \(i\) and month \(t\), computed as shown above.
+
+#### Priors
+
+\[
+\beta_0 \sim \text{Normal}(0, 2), \quad \theta_i \sim \text{Normal}(0, 1), \quad \sigma \sim \text{Normal}(1, 2)
+\]
+
+Where:
+- \( \beta_0 \) is the global intercept,
+- \( \theta_i \) are the random effects for each county,
+- \( \sigma \) is the standard deviation of the random effects, representing county-level variability.
+
+---
+
+

@@ -1,0 +1,27 @@
+---
+title: "Posterior Mapping of County Effects with Population Offset"
+author: "Jovana Mitic"
+date: "`r Sys.Date()`"
+output:
+  workflowr::wflow_html:
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+library(tigris)
+library(rstan)
+library(sf)
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+library(patchwork)
+
+# Load data
+#load("data/logbetapop.RData")        # Model fit with population offset
+#load("data/data_list_august.RData")   # Data list
+```
+
+### Mean Posterior Theta Mapping
+We extract the posterior means of the random effects, join them with geographic and demographic data, and plot them across South Carolina counties.

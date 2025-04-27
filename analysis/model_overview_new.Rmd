@@ -1,0 +1,124 @@
+---
+title: "Model Overview: Negative Binomial County-Specific Spline Model"
+author: "JMitic01"
+date: "2025-04-25"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Introduction
+
+This model estimates county-level COVID-19 case counts using a Bayesian hierarchical negative binomial regression framework. It incorporates:
+
+- County-specific random effects (θ)
+- Spline-based temporal trends
+- Population offsets
+- Priors on global and county-level coefficients
+
+The model is implemented in Stan via the `negbinomial_countybeta.stan` file and is fit using the `rstan` interface.
+
+---
+
+## Model Formulation
+
+Let \( Y_{i,t} \) represent the number of observed COVID-19 cases for county \( i \) on day \( t \). The model assumes:
+
+### Likelihood
+
+\[
+Y_{i,t} \sim \text{NegBinomial}_2(\mu_{i,t}, \phi)
+\]
+
+Where:
+- \( \mu_{i,t} = \lambda_{i,t} \cdot \text{pop}_{i,t} \)
+- \( \phi \) is the overdispersion parameter
+- The expected rate \( \lambda_{i,t} \) is modeled on the log scale.
+
+### Linear Predictor
+
+\[
+\log(\lambda_{i,t}) = \alpha + \theta_i + \sum_{j=1}^{K} \beta_{i,j} \cdot B_j(t)
+\]
+
+Where:
+- \( \alpha \): global intercept
+- \( \theta_i \): county-specific random effect
+- \( \beta_{i,j} \): spline coefficients for county \( i \)
+- \( B_j(t) \): value of the \( j \)-th spline basis at time \( t \)
+
+An offset of \( \log(\text{pop}_{i,t}) \) is included, so the full model becomes:
+
+\[
+\log(\mu_{i,t}) = \alpha + \theta_i + \sum_{j=1}^{K} \beta_{i,j} \cdot B_j(t) + \log(\text{pop}_{i,t})
+\]
+
+---
+
+## Parameters and Priors
+
+The following priors are placed on model parameters:
+
+- \( \alpha \sim \mathcal{N}(0, 2^2) \)  
+  Global intercept
+
+- \( \theta_i \sim \mathcal{N}(0, \sigma_\theta^2) \), with  
+  \( \sigma_\theta \sim \text{HalfNormal}(1) \)  
+  County-level effects
+
+- \( \beta_{i,j} \sim \mathcal{N}(0, \sigma_{\beta,j}^2) \), where \( \sigma_{\beta,j} = 2.5 \)  
+  Spline coefficients (independent per county)
+
+- \( \phi \sim \text{Gamma}(2, 0.1) \)  
+  Overdispersion in the negative binomial
+
+---
+
+## Stan Implementation Summary
+
+### Data Inputs
+- `Y`: Matrix of observed daily cases \([N \times T]\)
+- `Y_obs`: Binary matrix of observed/missing status
+- `pop`: Matrix of population size per county and day
+- `spline_basis`: \( T \times K \) B-spline matrix for time
+- Constants: `K`, `N`, `T`, `alpha_mean`, `alpha_scale`, `phi_shape`, `phi_rate`
+
+### Parameters
+- `alpha`: global intercept  
+- `phi`: dispersion parameter  
+- `theta_raw`: unscaled county effects  
+- `sigma_theta`: std dev of county effects  
+- `beta`: matrix of spline coefficients \([N \times K]\)  
+- `mu_beta`: mean spline effect vector (not directly used in prediction)
+
+### Transformed Parameters
+- `theta = sigma_theta * theta_raw`
+- Log-linear predictor:
+  \[
+  \text{eta}_{i,t} = \alpha + \theta_i + \sum_k \beta_{i,k} \cdot B_k(t)
+  \]
+
+- Final rate:
+  \[
+  \mu_{i,t} = \exp(\text{eta}_{i,t}) \cdot \text{pop}_{i,t}
+  \]
+
+---
+
+## Generated Quantities
+
+Posterior predictive samples for:
+- Observed case counts \( Y^{\text{pred}}_{i,t} \sim \text{NegBin}(\mu_{i,t}, \phi) \)
+
+This allows direct posterior predictive checks against observed data.
+
+---
+
+## Summary
+
+This hierarchical model balances flexibility (via county-specific spline trends) with shared structure (via priors). It is well-suited for:
+- Estimating spatial heterogeneity in COVID-19 burden
+- Short-term forecasting
+- Integrating future signals (e.g., wastewater data) through shared latent prevalence
+
+Future model extensions may include spatial priors on \( \theta_i \) and joint likelihoods for other data types.

@@ -1,0 +1,68 @@
+---
+title: "mapsboxplotsAR"
+author: "JMitic01"
+date: "2025-01-16"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+
+## Model Overview and Notations
+
+The following report summarizes the implementation and results of a Bayesian hierarchical model incorporating temporal autocorrelation via AR(1) processes for 20 counties. Below, we detail the results, including trace plots, posterior distributions, and visualizations of model predictions.
+
+---
+
+####Posterior Distributions and Correlations
+This pair plot shows the posterior distributions of model parameters `beta_0`, `rho`, and `sigma` and their pairwise correlations. The histograms along the diagonal represent the marginal distributions, while the scatter plots in the off-diagonal elements illustrate the relationships between parameters. These results are critical for assessing parameter uncertainty and dependencies in the Bayesian model.
+
+![Beta_Sigma_Rho_Traceplots](img/20 counties pairs.png)
+
+#### Beta, Sigma, and Rho Trace Plots
+The trace plots for `beta_0`, `sigma`, and `rho` illustrate the sampling behavior of these key parameters. A stationary pattern with no drift over iterations suggests that the sampler effectively explored the posterior distribution. 
+
+![Beta_Sigma_Rho_20counties](img/traceplots20counties.png)
+---
+
+#### Theta Trace Plots
+
+The theta parameters capture county-specific deviations. Below, we present trace plot for `theta[10]`. Consistent sampling patterns indicate adequate mixing and convergence for these parameters.
+
+![Theta_Traceplots](img/theta_10_20countues.png)
+
+---
+
+### Boxplot of Posterior Theta Distributions
+This boxplot depicts the posterior distributions of the parameter theta across counties in South Carolina. Counties with larger values of theta indicate higher contributions to the modeled response, potentially reflecting higher disease incidence or risk. The variability in theta values across counties provides insights into regional heterogeneity.
+![BoxPlots Theta](img\THETAPLOTS_AR2_20COUNTIES.png)
+
+---
+
+### Posterior Mean of Lambda Across Counties for April 2020
+
+The map below shows the spatial distribution of the posterior mean of \(\lambda\) for April 2020. 
+
+- **Definition**: \(\lambda\) represents the county-level expected disease rate. 
+- **Visualization**: Counties are shaded according to their mean \(\lambda\), with a gradient from blue (lower values) to red (higher values). Grey indicates counties for which estimates are unavailable.
+
+This map highlights regional patterns in disease rates, helping identify hotspots or areas with reduced disease activity.
+
+![Lambda_Map](img/lambda_map_april2020.png)
+
+---
+
+### Cases Per Capita Across Counties
+
+The following map visualizes reported cases per capita for the 20 counties. Counties are color-coded based on their per capita case rate, ranging from low (blue) to high (red). This map helps identify regions with higher case densities, providing insight into spatial trends of COVID-19 cases.
+- **Definition**: Cases per capita are calculated as the total number of cases divided by the county population, providing a standardized measure. 
+- **Purpose**: This approach highlights regions with disproportionately high or low case rates relative to population size.
+
+![Cases_per_capita](img\updated_names_cases_AR2_20 counties.png)
+
+![Cases_and_Plots](img\cases per capita_20_AR2_withnames.png)
+---
+
+## Summary
+
+The analysis provides an overview of county-level disease trends for the selected 20 counties. By incorporating temporal autocorrelation through the AR(1) structure and using hierarchical Bayesian methods, the model captures spatial and temporal variability in disease rates. 

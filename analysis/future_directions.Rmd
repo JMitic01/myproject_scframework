@@ -1,0 +1,102 @@
+---
+title: "Future Directions Wastewater Surveillance & DIOS"
+author: "JMitic01"
+date: "2025-04-25"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Expanding Toward Surveillance Optimization
+
+While the current model focuses on predicting COVID-19 case counts at the county level, future directions include optimizing surveillance strategies — particularly incorporating wastewater data and using the DIOS (Decision-Informed Optimal Surveillance) framework.
+
+### Wastewater Integration (Planned)
+
+We plan to model wastewater signals as indirect observations of the same latent prevalence \( \lambda_{i,t} \). A zero-inflated Gamma distribution may be used:
+
+$$
+W_{i,t} \sim p \cdot \text{Gamma}(\kappa_i^{-2}, a \cdot \kappa_i^2 \cdot \text{pop}_{i,t} \cdot \lambda_{i,t}) + (1-p)\delta_0
+$$
+
+This enables joint modeling of clinical case counts and environmental surveillance for stronger estimation and forecasting.
+
+---
+
+## Decision-Informed Optimal Surveillance (DIOS)
+
+DIOS provides a framework to guide **where and how to place surveillance resources** using statistical models and decision-theoretic loss functions.
+
+### 🛠 Design Parameters
+- Choosing which counties to test (sampled counties)
+- Deciding how many tests to allocate per county (equal vs. population-based)
+- Setting outbreak detection rules (e.g., daily cases > 5 and % change > 100%)
+
+### 📉 Operational Constraints
+- Total tests available per day (e.g., 5,000)
+- Ensuring valid test results (no negative values)
+- Balanced allocations respecting population or uniformity
+
+### 🎯 Surveillance Objectives
+
+#### 1. **Minimize Outbreak Detection Delay**
+Reduce the lag between outbreak start and detection time.
+
+$$
+f = E[T_{detected} - T_{outbreak}]
+$$
+
+Where:
+- \( T_{outbreak} \): Outbreak start from observed data
+- \( T_{detected} \): Detection time based on adjusted or simulated cases
+
+---
+
+#### 2. **Minimize Estimation Error**
+Evaluate how far predicted cases deviate from true case counts:
+
+$$
+f = \frac{1}{n} \sum_{i=1}^{n} (CI_i - CD_i)^2
+$$
+
+Where \( CI_i \) is the estimated count and \( CD_i \) the true count for county \( i \).
+
+---
+
+#### 3. **Minimize Uncertainty in Estimands**
+Focuses on reducing variance in estimates of key targets like peaks or total cases:
+
+$$
+f = \text{Var}(P_I)
+$$
+
+Where \( P_I \) is the predicted peak.
+
+---
+
+#### 4. **Maximize Classification Accuracy**
+Optimize outbreak classification performance using ROC metrics:
+
+$$
+f = \int_0^1 \pi_{tp}(p_{fp}) \, dp_{fp}
+$$
+
+Where:
+- \( \pi_{tp} \): True positive rate
+- \( p_{fp} \): False positive rate
+
+---
+
+#### 5. **Maximize Allocation Efficiency**
+Optimize the value of each test based on the county population and estimated case yield:
+
+$$
+f = \sum_{i=1}^{n} \left( \frac{\text{Allocated Tests}_i}{\text{Population}_i} \cdot \log(1 + CI_i) \right)
+$$
+
+---
+
+## Summary
+
+This direction will connect predictive modeling with surveillance system design. Future work will integrate Bayesian inference, stochastic simulation, and optimization to enhance early outbreak detection and response across South Carolina.
+

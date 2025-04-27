@@ -1,0 +1,16 @@
+---
+title: "Bayesian Hierarchical Modeling for Early COVID-19 Surveillance Design"
+output:
+  workflowr::wflow_html:
+    toc: false
+editor_options:
+  chunk_output_type: console
+---
+
+## About This Project
+
+This project applies Bayesian hierarchical modeling to understand and forecast early COVID-19 trends at the county level. Using a spatio-temporal disease model, we estimate daily case counts by incorporating population data, time-varying trends modeled via B-splines, and county-specific random effects. The model is trained on lagged case data to reflect realistic surveillance conditions and is designed to inform public health decision-making through predictive inference.
+
+While the current focus is on case data alone, a natural next step is to extend the model to include wastewater surveillance as an additional data stream. This would allow joint modeling of clinical and environmental signals to improve early detection and resource allocation.
+
+

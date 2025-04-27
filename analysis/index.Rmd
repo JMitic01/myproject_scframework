@@ -1,0 +1,44 @@
+---
+title: "Home"
+site: workflowr::wflow_site
+output:
+  workflowr::wflow_html:
+    toc: false
+editor_options:
+  chunk_output_type: console
+---
+
+- **General Summary** 
+
+  - [Literature Review](literature.html) 
+  
+- **Overview of the Data Set**
+
+  - [South Carolina COVID-19 County Data Set](data.html)
+  
+- **SC Model**
+  
+  - [Overview of the Model](scmodel-stan.html) 
+  - [Maps, Boxplots, and Trace Plots](mapsboxplots.html)
+
+- **SC AR Model**
+  
+  - [Overview of the AR(1) Model](stanAR-sc.html)
+  - [Maps, Boxplots, and Trace Plots for Parameters](mapsboxplotsAR.html)
+
+- **County Spline Model**
+
+  - [Model Overview](model_overview_new.html)
+  Detailed explanation of the Stan model, including priors and structure
+  
+  - [Posterior Predictive Accuracy](posterior_predictions.html)
+  Evaluation of the predictive accuracy via predictive plots, RMSE, MAE, and bias by county
+  
+  - [County Effect(Theta Mapping)]()
+  Maps of county-level random effects with interpretation of spatial heterogeneity
+  
+  - [Spatial Clustering (LISA)]()
+  Explores spatial autocorrelation and local clusters using Moran's I and LISA
+  
+  - [Future Directions](future_directions.html)
+  Plans to incorporate wastewater surveillance and Decision-Informed-Optimal Surveillance (DIOS) objectivess

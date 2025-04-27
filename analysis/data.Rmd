@@ -1,0 +1,51 @@
+---
+title: "South Carolina COVID-19 Data Analysis"
+author: "JMitic01"
+date: "2024-12-10"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Introduction
+
+This document analyzes COVID-19 data for South Carolina counties, covering the period from March 2020 to July 2023. The dataset contains information for 46 unique counties across 41 months. The path for this  data is `Data-Community Data-SC County Data` in Box, specifically in the file `Sc_covid_data_county.csv`.
+
+The dataset includes key columns such as:
+- **Date** The number of new cases, hospitalizations, deaths reported on that specific date.
+- **County**: Name of the county
+- **Population**: Population size of the county
+- **Cases**: Total COVID-19 cases reported
+- **Deaths**: Total COVID-19 deaths reported
+- **Hospitalization**: Total COVID-19 hospitalizations reported
+
+## Dataset Summary
+
+### Number of Counties and Months
+
+- The dataset includes 46 unique counties, all belonging to the state of South Carolina.
+- Data spans 41 months, from March 2020 to July 2023.
+
+### Summary of COVID-19 Cases
+
+- **Minimum Cases**: 0 (suggesting some locations or dates had no reported cases).
+- **First Quartile (Q1)**: 2,244 (25% of locations/dates reported cases ≤ 2,244).
+- **Median**: 6,916 (half of the locations/dates reported cases ≤ 6,916).
+- **Mean**: 19,266 (average number of cases reported across locations/dates, skewed by higher values).
+- **Third Quartile (Q3)**: 21,742 (75% of locations/dates reported cases ≤ 21,742).
+- **Maximum Cases**: 173,338 (a very high value, potentially from a populous county or cumulative reporting).
+
+The high mean relative to the median indicates a skew in the distribution, likely caused by outliers or larger counties with significantly higher case counts.
+
+### Summary of Population
+
+- **Minimum Population**: 8,688 (smallest county population).
+- **First Quartile (Q1)**: 27,260 (25% of counties have populations ≤ 27,260).
+- **Median**: 59,990 (half of the counties have populations ≤ 59,990).
+- **Mean**: 111,929 (average population per county, influenced by larger counties).
+- **Third Quartile (Q3)**: 162,809 (75% of counties have populations ≤ 162,809).
+- **Maximum Population**: 523,542 (largest county population, likely a metropolitan area).
+
+The disparity between the mean and median reflects the presence of a few very large counties inflating the average population.
+
+The dataset captures a wide range of case counts, from no reported cases to very high values (173,338). This may indicate significant variability in the impact of COVID-19 across counties or differences in reporting practices.
