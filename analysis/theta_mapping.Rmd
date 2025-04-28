@@ -9,6 +9,7 @@ output:
     code_folding: hide
 ---
 We fit a Bayesian negative binomial model with county-specific random effects (theta) and a population offset. Here, we visualize and interpret the posterior means of county effects and their relationship to county population sizes.
+
 ```{r setup, include=FALSE, message=FALSE, warning=FALSE}
 library(tigris)
 library(rstan)
@@ -21,23 +22,21 @@ library(readr)
 library(tidyr)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
+
 sink(tempfile())  
 load("data/logbetapop.RData")  # Load fit2 quietly
 sink()  
 
 load("data/data_list_august.RData")  # Data list
 
-
-
 ```
 
-##Mean Posterior Theta Mapping
+## Mean Posterior Theta Mapping
 We extract the posterior means of the random effects, join them with geographic and demographic data, and plot them across South Carolina counties.
 ```{r theta-mapping, fig.width=12, fig.height=6, message=FALSE, warning=FALSE}
 
 # Extract theta samples
-# NEW GOOD
-theta_samples_with <- as.matrix(fit2, pars = "theta")
+theta_samples_with <- suppressMessages(suppressWarnings(as.matrix(fit2, pars = "theta")))
 mean_theta_with <- colMeans(theta_samples_with)
 Y_matrix <- data_list$Y
 
@@ -47,8 +46,12 @@ theta_map_data_with <- data.frame(
 ) %>%
   mutate(county = trimws(county))
 
-# Load SC counties shapefile
-sc_counties_sf <- tigris::counties(state = "SC", cb = TRUE, year = 2020, class = "sf") %>%
+options(tigris_use_cache = TRUE)
+options(tigris_class = "sf")
+
+sc_counties_sf <- suppressMessages(suppressWarnings(
+  tigris::counties(state = "SC", cb = TRUE, year = 2020, class = "sf")
+)) %>%
   mutate(NAME = trimws(NAME))
 
 # Load and process population data
@@ -124,7 +127,7 @@ This pattern suggests that **additional unmeasured county-level factors** (such 
 
 ---
 
-##Mean Lambda Mapping (Expected Case Counts)
+## Mean Lambda Mapping (Expected Case Counts)
 
 We also visualize the **posterior mean of lambda** (expected number of cases) across months **April–June 2020** to examine the spatial and temporal progression of COVID-19 spread across South Carolina.
 
