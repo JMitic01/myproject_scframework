@@ -9,7 +9,7 @@ output:
     code_folding: hide
 ---
 We fit a Bayesian negative binomial model with county-specific random effects (theta) and a population offset. Here, we visualize and interpret the posterior means of county effects and their relationship to county population sizes.
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
 library(tigris)
 library(rstan)
 library(sf)
@@ -17,38 +17,47 @@ library(dplyr)
 library(ggplot2)
 library(gridExtra)
 library(patchwork)
-load("data/logbetapop.RData")        # Model fit with population offset
-load("data/data_list_august.RData")   # Data list
+library(readr)
+library(tidyr)
+rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
+sink(tempfile())  
+load("data/logbetapop.RData")  # Load fit2 quietly
+sink()  
+
+load("data/data_list_august.RData")  # Data list
+
+
+
 ```
 
 ### Mean Posterior Theta Mapping
 We extract the posterior means of the random effects, join them with geographic and demographic data, and plot them across South Carolina counties.
-```{r}
-# Extract posterior theta
-theta_samples_with <- rstan::extract(fit2)$theta
-mean_theta_with <- colMeans(theta_samples_with)
+### Mean Posterior Theta Mapping
 
-# Prepare county info
+We extract the posterior means of the random effects, join them with geographic and demographic data, and plot them across South Carolina counties.
+
+```{r theta-mapping, fig.width=12, fig.height=6, message=FALSE, warning=FALSE}
+
+# Extract theta samples
+# NEW GOOD
+theta_samples_with <- as.matrix(fit2, pars = "theta")
+mean_theta_with <- colMeans(theta_samples_with)
 Y_matrix <- data_list$Y
+
 theta_map_data_with <- data.frame(
   county = rownames(Y_matrix),
   mean_theta = mean_theta_with
 ) %>%
   mutate(county = trimws(county))
 
-# Load SC shapefile and population data
-sc_counties_sf <- tigris::counties(state = "SC", cb = TRUE, year = 2020, class = "sf") %>% 
+# Load SC counties shapefile
+sc_counties_sf <- tigris::counties(state = "SC", cb = TRUE, year = 2020, class = "sf") %>%
   mutate(NAME = trimws(NAME))
 
-library(readr)
-library(readr)
-library(dplyr)
-
-# Load cumulative cases
+# Load and process population data
 raw_df <- read_csv("C:\\Users\\jovan\\Box/BoxPHI-PHMR Projects\\Data\\Community Data\\SC County Data\\SC_covid_data_county.csv") %>%
-  mutate(
-    Date = as.Date(Date, format = "%m/%d/%Y")
-  ) %>%
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
   group_by(County) %>%
   arrange(County, Date) %>%
   mutate(
@@ -62,33 +71,48 @@ unique_county_population <- raw_df %>%
   summarise(population = max(Population, na.rm = TRUE)) %>%
   rename(county = County)
 
-# Merge datasets
+# Merge shapefile and data
 sc_counties_merged <- sc_counties_sf %>%
   left_join(unique_county_population, by = c("NAME" = "county")) %>%
   left_join(theta_map_data_with, by = c("NAME" = "county")) %>%
   mutate(mean_theta = ifelse(is.na(mean_theta), 0, mean_theta))
 
-# Population map
+# Save for future use
+save(sc_counties_merged, file = 'data/sc_counties_merged.RData')
+
+# Create Population Map
 p_population <- ggplot(sc_counties_merged) +
   geom_sf(aes(fill = population), color = "black") +
   scale_fill_viridis_c(option = "inferno", na.value = "grey80") +
   labs(title = "Population by County", fill = "Population") +
-  theme_minimal() +
-  theme(legend.position = "right")
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    panel.grid = element_blank(),
+    legend.position = "right"
+  )
 
-# Mean Theta map
+# Create Theta Map
 p_theta_with <- ggplot(sc_counties_merged) +
   geom_sf(aes(fill = mean_theta), color = "black", size = 0.2) +
   scale_fill_viridis_c(option = "inferno", na.value = "grey80", name = "Mean Theta") +
-  labs(title = "Mean Posterior Theta (With Population Offset)", subtitle = "South Carolina Counties (2020)", caption = "Model: logbetapop.RData") +
-  theme_minimal() +
-  theme(legend.position = "right")
+  labs(title = "Mean Posterior Theta (With Population Offset)",
+       subtitle = "South Carolina Counties (2020)",
+       caption = "Model: logbetapop.RData") +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    panel.grid = element_blank(),
+    legend.position = "right"
+  )
 
-# Arrange
+# Arrange the two maps side by side
 gridExtra::grid.arrange(p_population, p_theta_with, ncol = 2)
-
 ```
-### Posterior Theta Interpretation
+
+## Posterior Theta Interpretation
 
 The left panel displays the 2020 county-level populations, while the right panel visualizes the posterior mean of county-specific effects (`theta`) from the Bayesian model.
 
@@ -104,24 +128,32 @@ This pattern suggests that **additional unmeasured county-level factors** (such 
 
 ---
 
-### Mean Lambda Mapping (Expected Case Counts)
+##Mean Lambda Mapping (Expected Case Counts)
 
 We also visualize the **posterior mean of lambda** (expected number of cases) across months **April–June 2020** to examine the spatial and temporal progression of COVID-19 spread across South Carolina.
-```{r}
-# Load eta_list from previous posterior predictions
+
+```{r lambda-mapping, fig.width=14, fig.height=5, message=FALSE, warning=FALSE}
+# Load eta_list if not already loaded
 eta_list <- readRDS("data/eta_list.RDS")
 
+# Compute mean and SD for eta
 mean_eta <- lapply(eta_list, function(mat) colMeans(mat))
 sd_eta <- lapply(eta_list, function(mat) apply(mat, 2, sd))
 mean_eta_matrix <- do.call(rbind, mean_eta)
 sd_eta_matrix <- do.call(rbind, sd_eta)
 
-# Set dates and months
+# Define dates and months
 dates <- as.Date(colnames(data_list$Y))
 months_to_plot <- c("2020-04", "2020-05", "2020-06")
 
-# Create monthly plots
+# Load SC counties shapefile
+sc_counties_sf <- tigris::counties(state = "SC", cb = TRUE, year = 2020, class = "sf") %>%
+  mutate(NAME = trimws(NAME))
+
+# Create monthly lambda maps
+library(patchwork)
 lambda_mean_plots <- list()
+
 for (month in months_to_plot) {
   month_index <- which(format(dates, "%Y-%m") == month)
   
@@ -139,18 +171,25 @@ for (month in months_to_plot) {
   p <- ggplot(sc_lambda_map) +
     geom_sf(aes(fill = mean_lambda), color = "black", size = 0.2) +
     scale_fill_gradient(low = "blue", high = "red", na.value = "grey50") +
-    labs(title = paste("Mean Lambda -", month), fill = "Mean Lambda") +
-    theme_minimal() +
-    theme(legend.position = "right")
+    labs(title = paste("Mean Lambda -", month),
+         fill = "Mean Lambda") +
+    theme_minimal(base_size = 14) +
+    theme(
+      plot.background = element_rect(fill = "white", color = NA),
+      panel.background = element_rect(fill = "white", color = NA),
+      panel.grid = element_blank(),
+      legend.position = "right"
+    )
   
   lambda_mean_plots[[month]] <- p
 }
 
-# Combine
-combined_lambda_plot <- patchwork::wrap_plots(lambda_mean_plots, ncol = 3)
-combined_lambda_plot
-
+# Combine and display all three months side-by-side
+combined_lambda_plot <- wrap_plots(lambda_mean_plots, ncol = 3)
+print(combined_lambda_plot)
 ```
+
+
 ### Discussion: Temporal Dynamics of Expected Cases
 
 The monthly lambda maps reveal the **spatial progression** of COVID-19 activity across South Carolina:
