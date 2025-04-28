@@ -34,7 +34,7 @@ editor_options:
   - [Posterior Predictive Accuracy](posterior_predictions.html)
   Evaluation of the predictive accuracy via predictive plots, RMSE, MAE, and bias by county
   
-  - [County Effect(Theta Mapping)]()
+  - [County Effect(Theta Mapping)](theta_mapping.html)
   Maps of county-level random effects with interpretation of spatial heterogeneity
   
   - [Spatial Clustering (LISA)]()
