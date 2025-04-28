@@ -1,0 +1,107 @@
+---
+title: "Spatial Clustering (LISA)"
+author: "JMitic01"
+date: "2025-04-27"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Spatial Adjacency, Moran's I, and LISA Clustering
+
+In this section, we evaluate the spatial structure of posterior mean theta estimates (`mean_theta`) across South Carolina counties. We assess spatial autocorrelation using Moran's I and identify local spatial clusters using Local Indicators of Spatial Association (LISA).
+
+## Step 1–4: Spatial Weights, Moran's I, LISA, and Visualization
+
+```{r spatial-analysis, message=FALSE, warning=FALSE}
+library(sf)
+library(spdep)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# Create neighbors list and spatial weights
+load('data/sc_counties_merged.RData')
+
+nb <- poly2nb(sc_counties_merged)
+listw <- nb2listw(nb, style = "W", zero.policy = TRUE)
+
+# Create binary adjacency matrix
+adj_matrix <- nb2mat(nb, style = "B", zero.policy = TRUE)
+adj_df <- as.data.frame(adj_matrix)
+adj_df$from <- rownames(adj_df)
+adj_long <- pivot_longer(adj_df, -from, names_to = "to", values_to = "adj")
+
+# Plot adjacency matrix
+ggplot(adj_long, aes(x = from, y = to, fill = factor(adj))) +
+  geom_tile(color = "white") +
+  scale_fill_manual(values = c("0" = "white", "1" = "black")) +
+  labs(title = "Spatial Adjacency Matrix (Binary)", x = "County", y = "County") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, size = 6),
+        axis.text.y = element_text(size = 6))
+
+# Moran's I for theta with and without population adjustment
+moran_result_with <- moran.test(sc_counties_merged$mean_theta, listw)
+print("Moran's I for Theta (with population adjustment):")
+print(moran_result_with)
+
+nb_no <- poly2nb(sc_counties_merged)
+listw_no <- nb2listw(nb_no, style = "W", zero.policy = TRUE)
+moran_result_without <- moran.test(sc_counties_merged$mean_theta, listw_no)
+print("Moran's I for Theta (without population adjustment):")
+print(moran_result_without)
+
+# Compute Local Moran's I (LISA)
+lisa_results <- localmoran(sc_counties_merged$mean_theta, listw, zero.policy = TRUE)
+sc_counties_merged <- sc_counties_merged %>%
+  mutate(
+    local_I = lisa_results[, "Ii"],
+    local_Z = lisa_results[, "Z.Ii"],
+    local_p = lisa_results[, "Pr(z != E(Ii))"]
+  )
+
+# Standardize mean_theta and spatial lag
+sc_counties_merged$mean_theta_std <- scale(sc_counties_merged$mean_theta)
+sc_counties_merged$lag_mean_theta <- lag.listw(listw, sc_counties_merged$mean_theta, zero.policy = TRUE)
+sc_counties_merged$lag_mean_theta_std <- scale(sc_counties_merged$lag_mean_theta)
+
+# Classify into LISA cluster types
+sc_counties_merged <- sc_counties_merged %>%
+  mutate(
+    quadrant = case_when(
+      mean_theta_std > 0 & lag_mean_theta_std > 0 ~ "High-High",
+      mean_theta_std < 0 & lag_mean_theta_std < 0 ~ "Low-Low",
+      mean_theta_std > 0 & lag_mean_theta_std < 0 ~ "High-Low",
+      mean_theta_std < 0 & lag_mean_theta_std > 0 ~ "Low-High",
+      TRUE ~ "Not significant"
+    )
+  )
+
+# Plot LISA Clusters
+ggplot(sc_counties_merged) +
+  geom_sf(aes(fill = quadrant)) +
+  scale_fill_manual(values = c(
+    "High-High" = "red",
+    "Low-Low" = "blue",
+    "High-Low" = "orange",
+    "Low-High" = "lightblue",
+    "Not significant" = "gray"
+  )) +
+  labs(title = "LISA Clusters for Posterior Mean Theta",
+       fill = "Cluster Type") +
+  theme_minimal()
+```
+## Discussion of Spatial Clustering
+
+The LISA cluster map reveals notable spatial patterns in the posterior mean theta estimates across South Carolina counties.
+
+- **High-High clusters** (red) are observed across central and southeastern counties, indicating areas where counties with higher-than-expected outcomes are surrounded by neighbors with similarly high outcomes. These regions may represent persistent hotspots that warrant further investigation.
+
+- **Low-Low clusters** (blue) are mainly located in the southwestern parts of the state, suggesting contiguous regions of lower-than-expected posterior theta values.
+
+- **High-Low counties** (orange) represent spatial outliers: counties with relatively high theta values surrounded by neighbors with lower values. These may point to localized surges not reflected in surrounding areas.
+
+- **Low-High counties** (light blue) reflect the opposite pattern, where counties with lower theta values are adjacent to counties with higher-than-expected outcomes.
+
+Overall, the map highlights spatial autocorrelation in the model residuals, suggesting that local spatial factors may continue to influence outcomes even after adjusting for covariates like population size. These findings emphasize the importance of considering local spillover effects and unmeasured regional characteristics when interpreting model predictions.

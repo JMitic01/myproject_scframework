@@ -37,7 +37,7 @@ editor_options:
   - [County Effect(Theta Mapping)](theta_mapping.html)
   Maps of county-level random effects with interpretation of spatial heterogeneity
   
-  - [Spatial Clustering (LISA)]()
+  - [Spatial Clustering (LISA)](spatial_clustering.html)
   Explores spatial autocorrelation and local clusters using Moran's I and LISA
   
   - [Future Directions](future_directions.html)
