@@ -11,8 +11,6 @@ editor_options:
 
 In this section, we evaluate the spatial structure of posterior mean theta estimates (`mean_theta`) across South Carolina counties. We assess spatial autocorrelation using Moran's I and identify local spatial clusters using Local Indicators of Spatial Association (LISA).
 
-## Step 1–4: Spatial Weights, Moran's I, LISA, and Visualization
-
 ```{r spatial-analysis, message=FALSE, warning=FALSE}
 library(sf)
 library(spdep)
@@ -92,6 +90,16 @@ ggplot(sc_counties_merged) +
        fill = "Cluster Type") +
   theme_minimal()
 ```
+
+### Discussion: Adjacency Matrix Plot
+
+The adjacency matrix plot provides a visual representation of the spatial structure among South Carolina counties. Each row and column corresponds to a county, and a filled cell indicates that two counties are geographically adjacent. The symmetric structure of the matrix reflects the mutual nature of adjacency: if County A borders County B, then County B also borders County A.
+
+This plot is crucial for understanding the spatial dependence assumptions in the model. Specifically, when using a Conditional Autoregressive (CAR) prior for county-specific random effects, the adjacency structure dictates how information is shared across neighboring regions. Counties that are adjacent influence each other’s estimates more strongly than non-adjacent ones. A well-defined adjacency matrix ensures that spatial smoothing is appropriately localized and not overly global.
+
+Notably, the adjacency plot reveals patterns such as counties with many neighbors (central urban counties) and isolated regions with fewer connections (rural counties). Recognizing these differences is important because it impacts the degree of shrinkage or borrowing of strength that the spatial model applies in different areas.
+
+
 ## Discussion of Spatial Clustering
 
 The LISA cluster map reveals notable spatial patterns in the posterior mean theta estimates across South Carolina counties.
