@@ -522,15 +522,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomJMitic01myprojectscframeworktreebd95e71fb4df3c189de7b692c21a9a4fa1dcdf7dtargetblankbd95e71a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomJMitic01myprojectscframeworktreee6dc28f9ca1e0b2672d065c026ac18ae524ffa5etargetblanke6dc28fa">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/JMitic01/myproject_scframework/tree/bd95e71fb4df3c189de7b692c21a9a4fa1dcdf7d" target="_blank">bd95e71</a>
+<a href="https://github.com/JMitic01/myproject_scframework/tree/e6dc28f9ca1e0b2672d065c026ac18ae524ffa5e" target="_blank">e6dc28f</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomJMitic01myprojectscframeworktreebd95e71fb4df3c189de7b692c21a9a4fa1dcdf7dtargetblankbd95e71a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomJMitic01myprojectscframeworktreee6dc28f9ca1e0b2672d065c026ac18ae524ffa5etargetblanke6dc28fa"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -540,7 +540,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/JMitic01/myproject_scframework/tree/bd95e71fb4df3c189de7b692c21a9a4fa1dcdf7d" target="_blank">bd95e71</a>.
+<a href="https://github.com/JMitic01/myproject_scframework/tree/e6dc28f9ca1e0b2672d065c026ac18ae524ffa5e" target="_blank">e6dc28f</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -616,6 +616,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/JMitic01/myproject_scframework/blob/e6dc28f9ca1e0b2672d065c026ac18ae524ffa5e/analysis/posterior_predictions.Rmd" target="_blank">e6dc28f</a>
+</td>
+<td>
+JMitic01
+</td>
+<td>
+2025-04-28
+</td>
+<td>
+wflow_publish("analysis/posterior_predictions.Rmd")
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/JMitic01/myproject_scframework/41f11512470f6dc7e21cbd3dad18f8b0dc49b267/docs/posterior_predictions.html" target="_blank">41f1151</a>
+</td>
+<td>
+JMitic01
+</td>
+<td>
+2025-04-28
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 html
@@ -728,8 +762,7 @@ model.</p>
 the actual observed daily case counts to the model’s posterior
 predictive means and medians across the same forecast window. Each
 county’s RMSE is displayed alongside its plot to quantify prediction
-error.<br />
-Counties such as <strong>Charleston</strong> and
+error. Counties such as <strong>Charleston</strong> and
 <strong>Greenville</strong> exhibit larger discrepancies between
 observed and predicted cases, leading to higher RMSE values. In
 contrast, counties like <strong>Abbeville</strong> and
@@ -740,10 +773,10 @@ RMSEs.</p>
 counties (e.g., Charleston), the model tends to slightly
 <strong>underpredict large surges</strong>, possibly due to the
 smoothing nature of the spline-based temporal trend or unmodeled
-localized outbreaks. - In smaller counties (e.g., Abbeville), the model
+localized outbreaks. In smaller counties (e.g., Abbeville), the model
 maintains tighter prediction intervals and better tracks fluctuations,
 likely because smaller absolute case numbers lead to proportionally less
-volatility. - The credible intervals generally encapsulate the observed
+volatility. The credible intervals generally encapsulate the observed
 cases during the forecast period, suggesting good model calibration even
 when the point predictions deviate.</p>
 <p>Overall, these visualizations highlight the model’s strength in
@@ -752,6 +785,13 @@ pinpointing counties where <strong>prediction accuracy is more
 variable</strong>. They also reinforce the complementary role of
 quantitative metrics like MAE and RMSE alongside qualitative visual
 inspection for model validation.</p>
+<p>If the posterior predictive and eta both peak at similar times: - The
+spline components (η) successfully model the main trends (rise and fall
+of cases). - The random effects (θ, possibly accounting for counties or
+other units) and observation noise (negative binomial variance) are not
+introducing major distortion. - This indicates that the spline basis and
+random effects in the Stan model are well calibrated to the real
+signal.</p>
 <pre class="r"><code># Forecast period and RMSE
 forecast_start &lt;- as.Date(&quot;2020-07-16&quot;)
 forecast_end &lt;- as.Date(&quot;2020-08-01&quot;)
@@ -788,7 +828,7 @@ gg_pred &lt;- ggplot(subset_df, aes(x = Date)) +
   geom_line(aes(y = Predicted_Cases, color = County)) +
   geom_line(aes(y = Median_Predicted_Cases, color = County), linetype = &quot;dashed&quot;) +
   geom_ribbon(aes(ymin = Lower_95_CI, ymax = Upper_95_CI, fill = County), alpha = 0.2) +
-  geom_point(aes(y = Observed_Cases), shape = 16, color = &quot;black&quot;, alpha = 0.7) +
+  geom_point(aes(y = Observed_Cases), color = &quot;gray70&quot;, alpha = 0.6, size = 1.5) +
   geom_vline(xintercept = forecast_start, linetype = &quot;dashed&quot;, color = &quot;black&quot;) +
   facet_wrap(~ County + RMSE, scales = &quot;free_y&quot;, labeller = label_both) +
   labs(title = &quot;Posterior Predictive vs Observed COVID-19 Cases&quot;,
