@@ -13,7 +13,7 @@
 
 <meta name="date" content="2024-12-10" />
 
-<title>South Carolina COVID-19 Data Analysis</title>
+<title>South Carolina COVID-19 Data Set Analysis</title>
 
 <script src="site_libs/header-attrs-2.27/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -359,7 +359,8 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">South Carolina COVID-19 Data Analysis</h1>
+<h1 class="title toc-ignore">South Carolina COVID-19 Data Set
+Analysis</h1>
 <h4 class="author">JMitic01</h4>
 <h4 class="date">2024-12-10</h4>
 
@@ -437,15 +438,15 @@ results.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomJMitic01myprojectscframeworktreebd95e71fb4df3c189de7b692c21a9a4fa1dcdf7dtargetblankbd95e71a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomJMitic01myprojectscframeworktree02d86aa589acb7b631e2c953f8d02552d70e0f9btargetblank02d86aaa">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/JMitic01/myproject_scframework/tree/bd95e71fb4df3c189de7b692c21a9a4fa1dcdf7d" target="_blank">bd95e71</a>
+<a href="https://github.com/JMitic01/myproject_scframework/tree/02d86aa589acb7b631e2c953f8d02552d70e0f9b" target="_blank">02d86aa</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomJMitic01myprojectscframeworktreebd95e71fb4df3c189de7b692c21a9a4fa1dcdf7dtargetblankbd95e71a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomJMitic01myprojectscframeworktree02d86aa589acb7b631e2c953f8d02552d70e0f9btargetblank02d86aaa"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -455,7 +456,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/JMitic01/myproject_scframework/tree/bd95e71fb4df3c189de7b692c21a9a4fa1dcdf7d" target="_blank">bd95e71</a>.
+<a href="https://github.com/JMitic01/myproject_scframework/tree/02d86aa589acb7b631e2c953f8d02552d70e0f9b" target="_blank">02d86aa</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -535,6 +536,40 @@ Message
 Rmd
 </td>
 <td>
+<a href="https://github.com/JMitic01/myproject_scframework/blob/02d86aa589acb7b631e2c953f8d02552d70e0f9b/analysis/data.Rmd" target="_blank">02d86aa</a>
+</td>
+<td>
+JMitic01
+</td>
+<td>
+2025-04-28
+</td>
+<td>
+wflow_publish("analysis/data.Rmd")
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/JMitic01/myproject_scframework/41f11512470f6dc7e21cbd3dad18f8b0dc49b267/docs/data.html" target="_blank">41f1151</a>
+</td>
+<td>
+JMitic01
+</td>
+<td>
+2025-04-28
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
 <a href="https://github.com/JMitic01/myproject_scframework/blob/0cec317a78a9aa63f81ee5a1fb717b3612e6ed43/analysis/data.Rmd" target="_blank">0cec317</a>
 </td>
 <td>
@@ -571,75 +606,104 @@ Force remove mistakenly added submodule myproject_clean
 </div>
 </div>
 </div>
-<div id="introduction" class="section level2">
-<h2>Introduction</h2>
-<p>This document analyzes COVID-19 data for South Carolina counties,
-covering the period from March 2020 to July 2023. The dataset contains
-information for 46 unique counties across 41 months. The path for this
-data is <code>Data-Community Data-SC County Data</code> in Box,
-specifically in the file <code>Sc_covid_data_county.csv</code>.</p>
-<p>The dataset includes key columns such as: - <strong>Date</strong> The
-number of new cases, hospitalizations, deaths reported on that specific
-date. - <strong>County</strong>: Name of the county -
-<strong>Population</strong>: Population size of the county -
-<strong>Cases</strong>: Total COVID-19 cases reported -
-<strong>Deaths</strong>: Total COVID-19 deaths reported -
-<strong>Hospitalization</strong>: Total COVID-19 hospitalizations
-reported</p>
+<div id="south-carolina-covid-19-data-set-analysis"
+class="section level2">
+<h2>South Carolina COVID-19 Data Set Analysis</h2>
+<p>We analyze daily COVID-19 case and death counts at the county level
+across South Carolina.<br />
+The data were collected from March 6, 2020, to July 23, 2023, and were
+processed to derive daily new counts from the cumulative totals
+originally reported.</p>
 </div>
-<div id="dataset-summary" class="section level2">
-<h2>Dataset Summary</h2>
-<div id="number-of-counties-and-months" class="section level3">
-<h3>Number of Counties and Months</h3>
+<div id="data-structure" class="section level2">
+<h2>Data Structure</h2>
+<p>The dataset contains <strong>56,166 rows</strong> and <strong>8
+columns</strong>:</p>
 <ul>
-<li>The dataset includes 46 unique counties, all belonging to the state
-of South Carolina.</li>
-<li>Data spans 41 months, from March 2020 to July 2023.</li>
+<li><code>Date</code>: The reporting date (daily frequency)</li>
+<li><code>County</code>: County name within South Carolina</li>
+<li><code>Population</code>: Estimated county population</li>
+<li><code>Cases</code>: Cumulative number of confirmed COVID-19
+cases</li>
+<li><code>Deaths</code>: Cumulative number of reported deaths</li>
+<li><code>Hospitalizations</code>: Reported hospitalizations (frequently
+missing)</li>
+<li><code>daily_cases</code>: Computed daily new confirmed cases</li>
+<li><code>daily_deaths</code>: Computed daily new reported deaths</li>
+</ul>
+<p>Daily counts were calculated as the difference in cumulative counts
+between consecutive days. Negative values (possible due to data
+corrections) were floored at zero using <code>pmax()</code>.</p>
+<div id="temporal-coverage" class="section level3">
+<h3>Temporal Coverage</h3>
+<ul>
+<li>The dataset spans from <strong>March 6, 2020</strong>, to
+<strong>July 23, 2023</strong>.</li>
+<li>Reporting is consistent across counties after the early months.</li>
 </ul>
 </div>
-<div id="summary-of-covid-19-cases" class="section level3">
-<h3>Summary of COVID-19 Cases</h3>
+<div id="county-coverage" class="section level3">
+<h3>County Coverage</h3>
 <ul>
-<li><strong>Minimum Cases</strong>: 0 (suggesting some locations or
-dates had no reported cases).</li>
-<li><strong>First Quartile (Q1)</strong>: 2,244 (25% of locations/dates
-reported cases ≤ 2,244).</li>
-<li><strong>Median</strong>: 6,916 (half of the locations/dates reported
-cases ≤ 6,916).</li>
-<li><strong>Mean</strong>: 19,266 (average number of cases reported
-across locations/dates, skewed by higher values).</li>
-<li><strong>Third Quartile (Q3)</strong>: 21,742 (75% of locations/dates
-reported cases ≤ 21,742).</li>
-<li><strong>Maximum Cases</strong>: 173,338 (a very high value,
-potentially from a populous county or cumulative reporting).</li>
+<li>The dataset includes <strong>46 counties</strong> across South
+Carolina.</li>
 </ul>
-<p>The high mean relative to the median indicates a skew in the
-distribution, likely caused by outliers or larger counties with
-significantly higher case counts.</p>
 </div>
-<div id="summary-of-population" class="section level3">
-<h3>Summary of Population</h3>
-<ul>
-<li><strong>Minimum Population</strong>: 8,688 (smallest county
-population).</li>
-<li><strong>First Quartile (Q1)</strong>: 27,260 (25% of counties have
-populations ≤ 27,260).</li>
-<li><strong>Median</strong>: 59,990 (half of the counties have
-populations ≤ 59,990).</li>
-<li><strong>Mean</strong>: 111,929 (average population per county,
-influenced by larger counties).</li>
-<li><strong>Third Quartile (Q3)</strong>: 162,809 (75% of counties have
-populations ≤ 162,809).</li>
-<li><strong>Maximum Population</strong>: 523,542 (largest county
-population, likely a metropolitan area).</li>
-</ul>
-<p>The disparity between the mean and median reflects the presence of a
-few very large counties inflating the average population.</p>
-<p>The dataset captures a wide range of case counts, from no reported
-cases to very high values (173,338). This may indicate significant
-variability in the impact of COVID-19 across counties or differences in
-reporting practices.</p>
+<div id="exploratory-data-analysis" class="section level3">
+<h3>Exploratory Data Analysis</h3>
+<p><strong>Daily New Cases:</strong> - Minimum daily cases: 0 - Median
+daily cases: 0 - Mean daily cases: 26.4 - Maximum daily cases:
+10,269</p>
+<p><strong>Daily New Deaths:</strong> - Median daily deaths: 0 - Mean
+daily deaths: 0.32 - Maximum daily deaths: 36</p>
+<p><strong>Zero-Inflation:</strong> - About <strong>54.5%</strong> of
+the county-date pairs recorded <strong>zero daily cases</strong>,
+reflecting the early pandemic period and lower case counts in rural
+counties.</p>
+<p><strong>Population Range:</strong> - Smallest county population:
+<strong>8,688</strong> residents - Largest county population:
+<strong>523,542</strong> residents</p>
 </div>
+<div id="spatial-differences" class="section level3">
+<h3>Spatial Differences</h3>
+<p>There is substantial variability in daily case counts across
+counties: - The counties with the highest average daily new cases were:
+- <strong>Greenville</strong>: 142 cases/day -
+<strong>Richland</strong>: 101 cases/day - <strong>Charleston</strong>:
+92.5 cases/day - In contrast, many smaller rural counties reported much
+lower daily averages, often close to zero.</p>
+<p>The top three counties — Greenville, Richland, and Charleston — are
+major population centers and displayed consistently higher transmission
+throughout the pandemic.</p>
+<hr />
+</div>
+</div>
+<div id="visualization" class="section level2">
+<h2>Visualization</h2>
+<p>The figure below shows the time series of daily new cases for the top
+three counties:</p>
+<div class="float">
+<img src="img/daily_covid_cases.png" alt="Daily_Cases" />
+<div class="figcaption">Daily_Cases</div>
+</div>
+<p>These counties experienced distinct waves of COVID-19, with notable
+surges in late 2020, mid-2021 (Delta variant wave), and an extremely
+sharp spike in early 2022 (Omicron variant wave).</p>
+<p>Charleston showed moderate levels of cases relative to Greenville and
+Richland, with Greenville consistently exhibiting the largest peaks in
+daily new cases.</p>
+<hr />
+</div>
+<div id="summary" class="section level2">
+<h2>Summary</h2>
+<p>This processed dataset provides a detailed and cleaned record of
+COVID-19 daily incidence across South Carolina counties.<br />
+It is appropriate for modeling epidemic dynamics, forecasting future
+trends, and investigating spatial heterogeneity in disease burden.</p>
+<p>The presence of many zero-count days, large differences in county
+population sizes, and strong temporal waves will guide our model
+selection and motivate the use of flexible spline-based temporal models
+and spatial random effects.</p>
 </div>
 
 
