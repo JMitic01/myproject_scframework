@@ -1,5 +1,5 @@
 ---
-title: "South Carolina COVID-19 Data Analysis"
+title: "South Carolina COVID-19 Data Set Analysis"
 author: "JMitic01"
 date: "2024-12-10"
 output: workflowr::wflow_html
@@ -7,45 +7,84 @@ editor_options:
   chunk_output_type: console
 ---
 
-## Introduction
+## South Carolina COVID-19 Data Set Analysis
 
-This document analyzes COVID-19 data for South Carolina counties, covering the period from March 2020 to July 2023. The dataset contains information for 46 unique counties across 41 months. The path for this  data is `Data-Community Data-SC County Data` in Box, specifically in the file `Sc_covid_data_county.csv`.
+We analyze daily COVID-19 case and death counts at the county level across South Carolina.  
+The data were collected from March 6, 2020, to July 23, 2023, and were processed to derive daily new counts from the cumulative totals originally reported.
 
-The dataset includes key columns such as:
-- **Date** The number of new cases, hospitalizations, deaths reported on that specific date.
-- **County**: Name of the county
-- **Population**: Population size of the county
-- **Cases**: Total COVID-19 cases reported
-- **Deaths**: Total COVID-19 deaths reported
-- **Hospitalization**: Total COVID-19 hospitalizations reported
+## Data Structure
 
-## Dataset Summary
+The dataset contains **56,166 rows** and **8 columns**:
 
-### Number of Counties and Months
+- `Date`: The reporting date (daily frequency)
+- `County`: County name within South Carolina
+- `Population`: Estimated county population
+- `Cases`: Cumulative number of confirmed COVID-19 cases
+- `Deaths`: Cumulative number of reported deaths
+- `Hospitalizations`: Reported hospitalizations (frequently missing)
+- `daily_cases`: Computed daily new confirmed cases
+- `daily_deaths`: Computed daily new reported deaths
 
-- The dataset includes 46 unique counties, all belonging to the state of South Carolina.
-- Data spans 41 months, from March 2020 to July 2023.
+Daily counts were calculated as the difference in cumulative counts between consecutive days. Negative values (possible due to data corrections) were floored at zero using `pmax()`.
 
-### Summary of COVID-19 Cases
+### Temporal Coverage
 
-- **Minimum Cases**: 0 (suggesting some locations or dates had no reported cases).
-- **First Quartile (Q1)**: 2,244 (25% of locations/dates reported cases ≤ 2,244).
-- **Median**: 6,916 (half of the locations/dates reported cases ≤ 6,916).
-- **Mean**: 19,266 (average number of cases reported across locations/dates, skewed by higher values).
-- **Third Quartile (Q3)**: 21,742 (75% of locations/dates reported cases ≤ 21,742).
-- **Maximum Cases**: 173,338 (a very high value, potentially from a populous county or cumulative reporting).
+- The dataset spans from **March 6, 2020**, to **July 23, 2023**.
+- Reporting is consistent across counties after the early months.
 
-The high mean relative to the median indicates a skew in the distribution, likely caused by outliers or larger counties with significantly higher case counts.
+### County Coverage
 
-### Summary of Population
+- The dataset includes **46 counties** across South Carolina.
 
-- **Minimum Population**: 8,688 (smallest county population).
-- **First Quartile (Q1)**: 27,260 (25% of counties have populations ≤ 27,260).
-- **Median**: 59,990 (half of the counties have populations ≤ 59,990).
-- **Mean**: 111,929 (average population per county, influenced by larger counties).
-- **Third Quartile (Q3)**: 162,809 (75% of counties have populations ≤ 162,809).
-- **Maximum Population**: 523,542 (largest county population, likely a metropolitan area).
+### Exploratory Data Analysis
 
-The disparity between the mean and median reflects the presence of a few very large counties inflating the average population.
+**Daily New Cases:**
+- Minimum daily cases: 0
+- Median daily cases: 0
+- Mean daily cases: 26.4
+- Maximum daily cases: 10,269
 
-The dataset captures a wide range of case counts, from no reported cases to very high values (173,338). This may indicate significant variability in the impact of COVID-19 across counties or differences in reporting practices.
+**Daily New Deaths:**
+- Median daily deaths: 0
+- Mean daily deaths: 0.32
+- Maximum daily deaths: 36
+
+**Zero-Inflation:**
+- About **54.5%** of the county-date pairs recorded **zero daily cases**, reflecting the early pandemic period and lower case counts in rural counties.
+
+**Population Range:**
+- Smallest county population: **8,688** residents
+- Largest county population: **523,542** residents
+
+### Spatial Differences
+
+There is substantial variability in daily case counts across counties:
+- The counties with the highest average daily new cases were:
+  - **Greenville**: 142 cases/day
+  - **Richland**: 101 cases/day
+  - **Charleston**: 92.5 cases/day
+- In contrast, many smaller rural counties reported much lower daily averages, often close to zero.
+
+The top three counties — Greenville, Richland, and Charleston — are major population centers and displayed consistently higher transmission throughout the pandemic.
+
+---
+
+## Visualization
+
+The figure below shows the time series of daily new cases for the top three counties:
+
+![Daily_Cases](img/daily_covid_cases.png)
+
+These counties experienced distinct waves of COVID-19, with notable surges in late 2020, mid-2021 (Delta variant wave), and an extremely sharp spike in early 2022 (Omicron variant wave).
+
+Charleston showed moderate levels of cases relative to Greenville and Richland, with Greenville consistently exhibiting the largest peaks in daily new cases.
+
+---
+
+## Summary
+
+This processed dataset provides a detailed and cleaned record of COVID-19 daily incidence across South Carolina counties.  
+It is appropriate for modeling epidemic dynamics, forecasting future trends, and investigating spatial heterogeneity in disease burden.
+
+The presence of many zero-count days, large differences in county population sizes, and strong temporal waves will guide our model selection and motivate the use of flexible spline-based temporal models and spatial random effects.
+
