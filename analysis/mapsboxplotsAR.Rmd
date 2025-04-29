@@ -1,5 +1,5 @@
 ---
-title: "mapsboxplotsAR"
+title: "Maps, Box Plots for AR Model"
 author: "JMitic01"
 date: "2025-01-16"
 output: workflowr::wflow_html
