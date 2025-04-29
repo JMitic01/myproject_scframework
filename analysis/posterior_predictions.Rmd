@@ -103,15 +103,17 @@ The plots generated provide complementary insights into the model's performance 
 
 The **Expected Cases (eta) plots** show the median predicted incidence trajectories for each selected county, with shaded regions representing the 95% credible intervals. These plots illustrate how the model captures general epidemic trends, with visible surges in expected cases around mid-July 2020, particularly in higher-population counties like **Charleston** and **Greenville**. The credible bands widen slightly during the forecast window (after July 16), reflecting increased uncertainty once future cases are projected without direct data anchoring the model.
 
-The **Posterior Predictive vs Observed plots** compare the actual observed daily case counts to the model’s posterior predictive means and medians across the same forecast window. Each county’s RMSE is displayed alongside its plot to quantify prediction error.  
-Counties such as **Charleston** and **Greenville** exhibit larger discrepancies between observed and predicted cases, leading to higher RMSE values. In contrast, counties like **Abbeville** and **Orangeburg** show closer alignment between observed and predicted cases, reflected in tighter credible intervals and lower RMSEs.
+The **Posterior Predictive vs Observed plots** compare the actual observed daily case counts to the model’s posterior predictive means and medians across the same forecast window. Each county’s RMSE is displayed alongside its plot to quantify prediction error.  Counties such as **Charleston** and **Greenville** exhibit larger discrepancies between observed and predicted cases, leading to higher RMSE values. In contrast, counties like **Abbeville** and **Orangeburg** show closer alignment between observed and predicted cases, reflected in tighter credible intervals and lower RMSEs.
 
 Notably, the plots reveal several important aspects:
-- In larger counties (e.g., Charleston), the model tends to slightly **underpredict large surges**, possibly due to the smoothing nature of the spline-based temporal trend or unmodeled localized outbreaks.
-- In smaller counties (e.g., Abbeville), the model maintains tighter prediction intervals and better tracks fluctuations, likely because smaller absolute case numbers lead to proportionally less volatility.
-- The credible intervals generally encapsulate the observed cases during the forecast period, suggesting good model calibration even when the point predictions deviate.
+- In larger counties (e.g., Charleston), the model tends to slightly **underpredict large surges**, possibly due to the smoothing nature of the spline-based temporal trend or unmodeled localized outbreaks. In smaller counties (e.g., Abbeville), the model maintains tighter prediction intervals and better tracks fluctuations, likely because smaller absolute case numbers lead to proportionally less volatility. The credible intervals generally encapsulate the observed cases during the forecast period, suggesting good model calibration even when the point predictions deviate.
 
 Overall, these visualizations highlight the model’s strength in capturing the **general epidemic dynamics** while pinpointing counties where **prediction accuracy is more variable**. They also reinforce the complementary role of quantitative metrics like MAE and RMSE alongside qualitative visual inspection for model validation.
+
+If the posterior predictive and eta both peak at similar times:
+- The spline components (η) successfully model the main trends (rise and fall of cases).
+- The random effects (θ, possibly accounting for counties or other units) and observation noise (negative binomial variance) are not introducing major distortion.
+- This indicates that the spline basis and random effects in the Stan model are well calibrated to the real signal.
 
 
 ```{r PLOTS}
@@ -136,7 +138,7 @@ gg_pred <- ggplot(subset_df, aes(x = Date)) +
   geom_line(aes(y = Predicted_Cases, color = County)) +
   geom_line(aes(y = Median_Predicted_Cases, color = County), linetype = "dashed") +
   geom_ribbon(aes(ymin = Lower_95_CI, ymax = Upper_95_CI, fill = County), alpha = 0.2) +
-  geom_point(aes(y = Observed_Cases), shape = 16, color = "black", alpha = 0.7) +
+  geom_point(aes(y = Observed_Cases), color = "gray70", alpha = 0.6, size = 1.5) +
   geom_vline(xintercept = forecast_start, linetype = "dashed", color = "black") +
   facet_wrap(~ County + RMSE, scales = "free_y", labeller = label_both) +
   labs(title = "Posterior Predictive vs Observed COVID-19 Cases",
@@ -181,7 +183,6 @@ saveRDS(posterior, file = "data/posterior_samples.RDS")
 saveRDS(merged_df, file = "data/merged_predictions_observed.RDS")
 
 ```
-
 
 ### Summary of MAE Analysis and Posterior Predictions
 
